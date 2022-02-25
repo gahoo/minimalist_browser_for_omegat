@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body {font-size: 65%;}
+button, input {font-size: 75%;}
+.entry {border: solid 1px; border-color: lightgrey; padding: 0.2px;}
+em   {font-weight: bold; color: red; background-color: lemonchiffon;}
+#debug { display: none;}
+#show_debug:checked + #debug { display: block;}
+</style>
+</head>
+<body>
+	<div id='navi'>
+		<button onclick="history.back()">🔙</button>
+		<input id='query' type="text" value="{{ request.source_text }}">
+		<input id='go' type=button onClick="parent.location='/{{ request.source_lang}}-{{ request.target_lang }}/' + document.getElementById('query').value" value='GO'>
+		{% if page > 1 %}
+		<a href="/{{ request.source_lang}}-{{ request.target_lang }}/{{ request.source_text }}/{{ page - 1 }}">Prev</a>
+		{% endif %}
+		{% if page < npages %}
+		<a href="/{{ request.source_lang}}-{{ request.target_lang }}/{{ request.source_text }}/{{ page + 1 }}">Next</a>
+		{% endif %}
+		<span>Pages: {{page}} of {{npages}}</span>
+	</div>
+	<div id='dictionary_entry_list'>
+	{% for item in dictionary_entry_list %}
+	{% if item.transliteration2 is not none %}
+	<a class="entry" href="/zh-en/{{ item.term }}">{{ item.term }}</a>
+	{% else %}
+	<a class="entry" href="/en-zh/{{ item.term }}">{{ item.term }}</a>
+	{% endif %}
+	{% endfor %}
+	</div>
+	<div id='examples'>
+	{% for item in list %}
+		<p>{{ item.s_text|safe }}</br>{{ item.t_text|safe }}</p>
+	{% endfor %}
+	<div>
+	<label for="show_debug">Show JSON for debugging</label>
+	<input type="checkbox" id="show_debug" />
+	<div id='debug'>
+		<pre>{{ raw_json }}</pre>
+	</div>
+</body>
+</html>
