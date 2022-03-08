@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body {font-size: 65%;}
+button, input {font-size: 75%;}
+em   {font-weight: bold; color: red; background-color: lemonchiffon;}
+</style>
+<link rel="stylesheet" href="/static/{{ service_name }}.css">
+</head>
+<body>
+	<div id='navi'>
+		<button onclick="history.back()">🔙</button>
+		<input id='query' type="text" value="{{ payload.query }}">
+		<input id='go' type=button onClick="parent.location='?query=' + document.getElementById('query').value" value='GO'>
+	</div>
+	<div style="position: absolute; top: 4px; right: 4px;"><a href="?query={{ payload.query }}&refresh=true">🔄</a></div>
+	<div>
+	{% for item in responses %}
+	{{ item|safe }}
+	{% endfor %}
+	</div>
+</body>
+</html>
