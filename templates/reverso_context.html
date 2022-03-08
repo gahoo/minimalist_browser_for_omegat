@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body {font-size: 65%;}
+button, input {font-size: 75%;}
+.entry {border: solid 1px; border-color: lightgrey; padding: 0.2px;}
+em   {font-weight: bold; color: red; background-color: lemonchiffon;}
+#debug { display: none;}
+#show_debug:checked + #debug { display: block;}
+</style>
+<script src="/static/clipboard.min.js"></script>
+</head>
+<body>
+	<div id='navi'>
+		<button onclick="history.back()">🔙</button>
+		<input id='query' type="text" value="{{ payload.source_text }}">
+		<input id='go' type=button onClick="parent.location='?source_lang={{ payload.source_lang}}&target_lang={{ payload.target_lang }}&target_text=&mode={{ payload.mode }}&nrows={{ payload.nrows}}&source_text=' + document.getElementById('query').value" value='GO'>
+		{% if page > 1 %}
+		<a href="?source_lang={{ payload.source_lang}}&target_lang={{ payload.target_lang }}&source_text={{ payload.source_text }}&target_text=&mode={{ payload.mode }}&nrows={{ payload.nrows}}&npage={{ page - 1 }}">Prev</a>
+		{% endif %}
+		{% if page < npages %}
+		<a href="?source_lang={{ payload.source_lang}}&target_lang={{ payload.target_lang }}&source_text={{ payload.source_text }}&target_text=&mode={{ payload.mode }}&nrows={{ payload.nrows}}&npage={{ page + 1 }}">Next</a>
+		{% endif %}
+		<span>Pages: {{page}} of {{npages}}</span>
+	</div>
+	<div id='dictionary_entry_list'>
+	{% for item in dictionary_entry_list %}
+	{% if item.transliteration2 is not none %}
+	<a class="entry" href="?source_lang=zh&target_lang=en&source_text={{ item.term }}&target_text=&mode={{ payload.mode }}&nrows={{ payload.nrows}}">{{ item.term }}</a>
+	{% else %}
+	<a class="entry" href="?source_lang=en&target_lang=zh&source_text={{ item.term }}&target_text=&mode={{ payload.mode }}&nrows={{ payload.nrows}}">{{ item.term }}</a>
+	{% endif %}
+	{% endfor %}
+	</div>
+	<div id='examples'>
+	{% for item in list %}
+		<p class='example'>{{ item.s_text|safe }}</br>{{ item.t_text|safe }}</p>
+	{% endfor %}
+	<div>
+	<label for="show_debug">Show JSON for debugging</label>
+	<input type="checkbox" id="show_debug" />
+	<div id='debug'>
+		<pre>{{ raw_json }}</pre>
+	</div>
+</body>
+<script>
+	new ClipboardJS('em', {
+		    text: function(trigger) {
+			            return trigger.innerText;
+			        }
+	});
+</script>
+</html>

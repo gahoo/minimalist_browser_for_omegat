@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body {font-size: 65%;}
+button, input {font-size: 75%;}
+.entry {border: solid 1px; border-color: lightgrey; padding: 0.2px;}
+em   {font-weight: bold; color: red; background-color: lemonchiffon;}
+#debug { display: none;}
+#show_debug:checked + #debug { display: block;}
+</style>
+<script src="/static/clipboard.min.js"></script>
+
+</head>
+<body>
+	<div id='navi'>
+		<button onclick="history.back()">🔙</button>
+		<input id='query' type="text" value="{{ payload.params.jobs[0].sentences[0].text }}">
+		<input id='target_lang' type="text" placeholder="ZH" value="{{ payload.params.lang.target_lang }}">
+		<input id='go' type=button onClick="parent.location='?params.jobs[0].sentences[0].text=' + document.getElementById('query').value + '&params.lang.target_lang=' + document.getElementById('target_lang').value" value='GO'>
+	</div>
+	{% if error %}
+	<p>{{ error.message }}</p>
+	{% else %}
+	<div id='examples'>
+	{% for item in result.translations[0].beams %}
+	<p class='translation'>{{ item.sentences[0].text }}</p>
+	{% endfor %}
+	<div>
+	{% endif %}
+	<label for="show_debug">Show JSON for debugging</label>
+	<input type="checkbox" id="show_debug" />
+	<div id='debug'>
+		<pre>{{ raw_json }}</pre>
+	</div>
+</body>
+<script>
+	new ClipboardJS('.translation', {
+		    text: function(trigger) {
+			            return trigger.innerText;
+			        }
+	});
+</script>
+</html>
