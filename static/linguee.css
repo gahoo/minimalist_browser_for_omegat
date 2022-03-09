@@ -546,7 +546,8 @@ h2.lemma_desc{
 }
 .translation_desc{
     padding:2px 0 0 0;
-    display:inline-block
+    display:inline-block;
+    font-size: 14px
 }
 h3.translation_desc{
     margin:-8px
@@ -684,14 +685,14 @@ h3.translation_desc{
     font-size:13px
 }
 .tag_trans{
-    font-size:16px;
+    font-size:14px;
     color:#333;
     font-style:normal;
     display:inline-block;
     min-height:20px
 }
 .inexact .tag_trans{
-    font-size:13px;
+    font-size:14px;
     color:#333;
     font-style:normal
 }
@@ -996,7 +997,7 @@ a.expand_i{
     /* top:4px; */
     /* display:inline-block; */
     background-position:-20px -36px;
-    cursor:pointer;
+    /* cursor:pointer; */
     opacity:.55;
     filter:alpha(opacity=55)
 }
