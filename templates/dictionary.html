@@ -20,5 +20,8 @@ em   {font-weight: bold; color: red; background-color: lemonchiffon;}
 	{{ item|safe }}
 	{% endfor %}
 	</div>
+	{% if url is defined %}
+	<p><a href="{{ url }}">{{ url }}</a></p>
+	{% endif %}
 </body>
 </html>
