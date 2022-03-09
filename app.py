@@ -6,26 +6,15 @@ import requests
 import shelve
 import atexit
 import time
+import re
 from benedict import benedict
 from lxml import html, etree
 
 
 app = Flask(__name__)
 
-def unflatten(dictionary):
-    resultDict = dict()
-    for key, value in dictionary.items():
-        parts = key.split(".")
-        d = resultDict
-        for part in parts[:-1]:
-            if part not in d:
-                d[part] = dict()
-            d = d[part]
-        d[parts[-1]] = value
-    return resultDict
-
 class Browser(object):
-    def __init__(self, name, url, template, default={}, headers={}, xpath=[]):
+    def __init__(self, name, url, template, default={}, headers={}, xpath=[], seperator="", link_conversion={}):
         self.name = name
         self.url = url
         self.headers = {
@@ -34,11 +23,13 @@ class Browser(object):
                 'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36', 
                 'accept-language': 'zh-CN,zh;q=0.9'}
         self.headers.update(headers)
-        self.cache = shelve.open(name)
+        self.cache = shelve.open("caches/" + name)
         self.template = template
         self.default = default.copy()
         self.payload = {}
         self.xpath = xpath
+        self.seperator = seperator
+        self.link_conversion = link_conversion
 
     def query(self, **kwargs):
         if 'refresh' in kwargs and kwargs.pop('refresh') == 'true':
@@ -66,10 +57,13 @@ class Browser(object):
 
     def get(self):
         def extract_html(xpath):
-            return "".join([etree.tostring(node).decode('utf-8').replace('\\n','') for node in doc.xpath(xpath)])
+            selected = doc.xpath(xpath)
+            if self.link_conversion:
+                list(map(self.convert_links, selected))
+            return self.seperator.join([etree.tostring(node).decode('utf-8').replace('\\n','') for node in selected])
 
         def extract_text(xpath):
-            return "</br>".join([str(node.text) for node in doc.xpath(xpath)])
+            return "</br>".join([node.text_content() for node in doc.xpath(xpath)])
 
         print(self.url.format(**self.payload))
         r = requests.get(self.url.format(**self.payload), headers=self.headers)
@@ -80,13 +74,24 @@ class Browser(object):
             selected  = [extract_text(xpath) for xpath in self.xpath]
         return selected
 
+    def convert_links(self, node):
+        def replace_a_href(a_tag):
+            has_found_query = re.search(regex, a_tag.get('href'))
+            if has_found_query:
+                query = has_found_query.group(1)
+                a_tag.set('href', '?query={query}'.format(query=query))
+
+        for a_class, regex in self.link_conversion.items():
+            a_tags = node.xpath('//a[@class="{a_class}"]'.format(a_class=a_class))
+            list(map(replace_a_href, a_tags))
+
     def render(self, **kwargs):
         resp = self.query(**kwargs)
         if isinstance(resp, dict):
             debug_json = dict([(k, v) for k, v in resp.items() if k != 'list' and v is not None and v != []])
             return render_template(self.template, raw_json = json.dumps(debug_json, indent=4, ensure_ascii=False), payload=self.payload, **resp)
         else:
-            return render_template(self.template, payload=self.payload, responses=resp, service_name=self.name)
+            return render_template(self.template, payload=self.payload, responses=resp, service_name=self.name, url=self.url.format(**self.payload))
 
     def close_cache(self):
         print("Closing cache")
@@ -97,9 +102,9 @@ services = {
     'deepl': Browser('deepl', "https://www2.deepl.com/jsonrpc", "deepl.html",
         {"jsonrpc":"2.0","method": "LMT_handle_jobs","params":{"jobs":[{"kind":"default","sentences":[{"text":"Tell me the story","id":0,"prefix":""}],"raw_en_context_before":[],"raw_en_context_after":[],"preferred_num_beams":4,"quality":"fast"}],"lang":{"user_preferred_langs":["ZH","EN"],"source_lang_user_selected":"auto","target_lang":"ZH"},"priority":-1,"commonJobParams":{"browserType":129,"formality":None},"apps":{"usage":5},"timestamp":1646624556415},"id":48930046}
         ),
-    'mw': Browser('merriam-webster', 'https://www.merriam-webster.com/dictionary/{query}', 'dictionary.html', {'query': '', 'extract': 'html'}, xpath=['//*[@class="vg" or @class="drp" or @class="fl" or @class="hword"]']),
+    'mw': Browser('merriam-webster', 'https://www.merriam-webster.com/dictionary/{query}', 'dictionary.html', {'query': '', 'extract': 'html'}, xpath=['//*[@class="vg" or @class="drp" or @class="fl" or @class="hword"]'], link_conversion={'mw_t_sx': '/dictionary/([a-zA-Z \+]+)#*', 'mw_t_d_link': '/dictionary/([a-zA-Z \+]+)#*', 'mw_t_a_link': '/dictionary/([a-zA-Z \+]+)#*', 'important-blue-link': '/dictionary/([a-zA-Z \+]+)#*'}),
     'collins': Browser('collins', 'https://www.collinsdictionary.com/zh/dictionary/{source_lang}-{target_lang}/mandarin/{query}', 'dictionary.html', {'query': '', 'source_lang': 'english', 'target_lang': 'chinese', 'extract': 'html'}, headers={'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36'}, xpath=['//*[@class="he"]']),
-    'linguee': Browser('linguee', 'https://www.linguee.com/{source_lang}-{target_lang}/search?query={query}', 'dictionary.html', {'query': '', 'source_lang': 'english', 'target_lang': 'chinese', 'extract': 'html'}, xpath=['//div[@class="isMainTerm"]', '//table[@class="result_table"]']),
+    'linguee': Browser('linguee', 'https://www.linguee.com/{source_lang}-{target_lang}/search?source=auto&query={query}', 'dictionary.html', {'query': '', 'source_lang': 'english', 'target_lang': 'chinese', 'extract': 'html'}, xpath=['//div[@class="isMainTerm"]', '//div[@class="isForeignTerm"]', '//table[@class="result_table"]//tr'], seperator = "<hr>", link_conversion={'dictLink': '/translation/(.*).html$', 'dictLink featured': '/translation/(.*).html$'}),
 }
 
 @atexit.register
@@ -119,6 +124,11 @@ def index(service=None):
         responses = {}
         responses['DeepL'] = services['deepl'].render(**{'params.jobs[0].sentences[0].text': request.args['query']})
         responses['Reverso Context'] = services['rc'].render(**{'source_text': request.args['query'], 'nrows': 5})
+        return render_template('index.html', responses=responses)
+    elif ',' in service:
+        responses = {}
+        for s_name in service.split(','):
+            responses[s_name] =services[s_name].render(**request.args)
         return render_template('index.html', responses=responses)
     else:
     	return services[service].render(**request.args)
