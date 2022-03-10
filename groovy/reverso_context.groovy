@@ -7,6 +7,7 @@ import org.omegat.gui.main.MainWindow
 import org.omegat.core.data.ProjectProperties
 import org.omegat.core.data.SourceTextEntry
 import org.omegat.core.events.IEntryEventListener
+import org.omegat.core.events.IProjectEventListener
 
 import javax.swing.AbstractAction
 import javax.swing.Action
@@ -20,15 +21,22 @@ import java.awt.event.KeyEvent
 def FILENAME = "reverso_context.groovy"
 def KEY = "REVERSO_CONTEXT"
 def TITLE = "Reverso Context"
-def DOMAIN = /.*/
-def URL = "http://127.0.0.1:5678"
+def DOMAIN = /^.*/
+def BASE_URL = "http://192.168.1.100:5678/reverso-context"
+
+String sourceCode = 'en'
+String targetCode = 'zh'
 
 ProjectProperties pp = Core.getProject().getProjectProperties()
-String sourceCode = pp.getSourceLanguage().getLanguageCode().toLowerCase()
-String targetCode = pp.getTargetLanguage().getLanguageCode().toLowerCase()
+if (pp) {
+    sourceCode = pp.getSourceLanguage().getLanguageCode().toLowerCase()
+    targetCode = pp.getTargetLanguage().getLanguageCode().toLowerCase()
+}
+
+def URL = "${BASE_URL}/?target_text=&source_lang=${sourceCode}&target_lang=${targetCode}&source_text="
 
 def pane = BrowserPane.get(KEY, TITLE, DOMAIN)
-//pane.getBrowser().loadURL(URL)
+pane.getBrowser().loadURL(URL)
 
 /* Record word at caret */
 String caretWord = null
@@ -46,8 +54,7 @@ Action action = new AbstractAction() {
     void actionPerformed(ActionEvent e) {
         q = ScriptHelpers.prepareText(Core.getEditor().getSelectedText(), caretWord)
         if (q == null) return
-        url = "${URL}/${sourceCode}-${targetCode}/"
-        url += "${ScriptHelpers.encodeText(q)}"
+        url = "${URL}${ScriptHelpers.encodeText(sourceTextEntry.srcText)}"
         println(url)
         pane.getBrowser().loadURL(url)
     }
@@ -75,8 +82,7 @@ def entryEventListener = new IEntryEventListener() {
 
     @Override
     void onEntryActivated(SourceTextEntry sourceTextEntry) {
-        url = "${URL}/${sourceCode}-${targetCode}/"
-        url += "${ScriptHelpers.encodeText(sourceTextEntry.srcText)}"
+        url = "${URL}${ScriptHelpers.encodeText(sourceTextEntry.srcText)}"
         println(url)
         pane.getBrowser().loadURL(url)
     }
@@ -91,6 +97,23 @@ def actionMapKey = "searchInReverso"
 mainWindow.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(keystroke, actionMapKey)
 mainWindow.getRootPane().getActionMap().put(actionMapKey, action)
 
+/* Also change language */
+def projectEventListener = new IProjectEventListener() {
+    @Override
+    void onProjectChanged(IProjectEventListener.PROJECT_CHANGE_TYPE project_change_type) {
+        if (project_change_type == IProjectEventListener.PROJECT_CHANGE_TYPE.LOAD ||
+            project_change_type == IProjectEventListener.PROJECT_CHANGE_TYPE.CREATE ||
+            project_change_type == IProjectEventListener.PROJECT_CHANGE_TYPE.MODIFIED
+        ) {
+            pp = Core.getProject().getProjectProperties()
+            sourceCode = pp.getSourceLanguage().getLanguageCode().toLowerCase()
+            targetCode = pp.getTargetLanguage().getLanguageCode().toLowerCase()
+            URL = "${BASE_URL}/?target_text=&source_lang=${sourceCode}&target_lang=${targetCode}&source_text="
+            println("Reverso Context URL change to ${URL}")
+        }
+    }
+}
+
 /* Remove all this when script is disabled */
 def scriptsEventListener = [
         onAdd    : {},
@@ -100,6 +123,7 @@ def scriptsEventListener = [
             if (file.getName() == FILENAME) {
                 pane.close()
                 CoreEvents.unregisterEntryEventListener(entryEventListener)
+                CoreEvents.unregisterProjectChangeListener(projectEventListener)
                 CoreEvents.unregisterEditorEventListener(editorEventListener)
                 mainWindow.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).remove(keystroke)
                 mainWindow.getRootPane().getActionMap().remove(actionMapKey)
@@ -108,4 +132,5 @@ def scriptsEventListener = [
         }].asType(ScriptsEventListener)
 
 scriptsRunner.registerEventListener(scriptsEventListener)
+CoreEvents.registerProjectChangeListener(projectEventListener)
 CoreEvents.registerEntryEventListener(entryEventListener)
