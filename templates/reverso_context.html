@@ -16,6 +16,7 @@ em   {font-weight: bold; color: red; background-color: lemonchiffon;}
 		<button onclick="history.back()">🔙</button>
 		<input id='query' type="text" value="{{ payload.source_text }}">
 		<input id='go' type=button onClick="parent.location='?source_lang={{ payload.source_lang}}&target_lang={{ payload.target_lang }}&target_text=&mode={{ payload.mode }}&nrows={{ payload.nrows}}&source_text=' + document.getElementById('query').value" value='GO'>
+		<input id='refresh' type=button onClick="parent.location = location.href + '&refresh=true'" value='Refresh'>
 		{% if page > 1 %}
 		<a href="?source_lang={{ payload.source_lang}}&target_lang={{ payload.target_lang }}&source_text={{ payload.source_text }}&target_text=&mode={{ payload.mode }}&nrows={{ payload.nrows}}&npage={{ page - 1 }}">Prev</a>
 		{% endif %}

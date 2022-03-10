@@ -18,6 +18,7 @@ em   {font-weight: bold; color: red; background-color: lemonchiffon;}
 		<input id='query' type="text" value="{{ payload.params.jobs[0].sentences[0].text }}">
 		<input id='target_lang' type="text" placeholder="ZH" value="{{ payload.params.lang.target_lang }}">
 		<input id='go' type=button onClick="parent.location='?params.jobs[0].sentences[0].text=' + document.getElementById('query').value + '&params.lang.target_lang=' + document.getElementById('target_lang').value" value='GO'>
+		 <input id='refresh' type=button onClick="parent.location = location.href + '&refresh=true'" value='Refresh'>
 	</div>
 	{% if error %}
 	<p>{{ error.message }}</p>
