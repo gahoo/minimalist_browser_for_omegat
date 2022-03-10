@@ -523,7 +523,7 @@ noindex:-o-prefocus,.semantic_field,.sem{
     background:0
 }
 .lemma_desc{
-    padding:0 0 5px 0
+    padding:0 0 3px 0
 }
 h2.lemma_desc{
     margin:0
@@ -541,16 +541,20 @@ h2.lemma_desc{
     text-indent:-18px
 }
 .exact .translation.featured{
-    margin-bottom:8px;
+    margin-bottom:4px;
     clear:both
 }
 .translation_desc{
-    padding:2px 0 0 0;
+    padding:0 0 0 0;
     display:inline-block;
     font-size: 14px
 }
 h3.translation_desc{
-    margin:-8px
+    margin: -28px 0 -28px 0
+}
+h3 {
+    margin-block-start: 0;
+    margin-block-end: 0;
 }
 #dictionary h3.translation_desc{
     margin-bottom:0
@@ -688,7 +692,7 @@ h3.translation_desc{
     font-size:14px;
     color:#333;
     font-style:normal;
-    display:inline-block;
+    display:inline;
     min-height:20px
 }
 .inexact .tag_trans{
@@ -863,7 +867,7 @@ a.audio{
     position:relative;
     cursor:pointer;
     top:3px;
-    display:inline-block;
+    display:none;
     width:19px;
     height:17px;
     background-position:-40px -38px;
@@ -877,7 +881,7 @@ a.audio{
     display:none
 }
 .inexact .lemma_desc a.audio,.inexact .translation.expanded a.audio,.inexact .translation.contracting a.audio{
-    display:inline-block
+    display:none
 }
 .exact .tag_lemma a.audio{
     top:2px
@@ -920,11 +924,11 @@ a.audio{
 .translation_row.singleline{
     height:20px
 }
-.singleline{
+/*.singleline{
     position:relative;
     padding-right:20px;
     height:20px;
-    overflow:hidden
+    overflow:visible
 }
 .singleline>*{
     line-height:50px;
@@ -937,7 +941,7 @@ a.audio{
 }
 .singleline .tag_s{
     white-space:nowrap
-}
+}*/
 .dict_headline_for_0,.dict_headline_for_1,#result_container h1,#AppUserFeedback h1,.autocompletion_headline{
     color:#000;
     font-weight:normal;
@@ -995,15 +999,15 @@ a.expand_i{
     /* height:17px; */
     position:relative;
     /* top:4px; */
-    /* display:inline-block; */
-    background-position:-20px -36px;
+    display:inline;
+    /* background-position:-20px -36px; */
     /* cursor:pointer; */
-    opacity:.55;
-    filter:alpha(opacity=55)
+    /*opacity:.55;
+    filter:alpha(opacity=55)*/
 }
-.translation a.expand_i{
+/*.translation a.expand_i{
     background-color:white
-}
+}*/
 .expertmode .expand_i{
     display:none
 }
@@ -1423,12 +1427,12 @@ h1 .openTriangle{
         line-height:14px
     }
 }
-@media screen and (-webkit-min-device-pixel-ratio:2),(min-resolution:192dpi){
+/*@media screen and (-webkit-min-device-pixel-ratio:2),(min-resolution:192dpi){
     #small_logo,#search_button,#search_button2,a.audio,a.expand_i,.source_url,.warnSign,.warnSign2{
         background-image:url(https://d1wigddrwdtsce.cloudfront.net/img5/sprites15_2x.png);
         background-size:250px 600px
     }
-}
+}*/
 @media screen and (-webkit-min-device-pixel-ratio:3),(min-resolution:192dpi){
     #small_logo{
         background-image:url(https://d1wigddrwdtsce.cloudfront.net/img5/sprites15_3x.png);
