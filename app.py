@@ -14,7 +14,7 @@ from lxml import html, etree
 app = Flask(__name__)
 
 class Browser(object):
-    def __init__(self, name, url, template, default={}, headers={}, xpath=[], seperator="", link_conversion={}):
+    def __init__(self, name, url, template, default={}, headers={}, xpath=[], exclude_xpath=[], seperator="", link_conversion={}):
         self.name = name
         self.url = url
         self.headers = {
@@ -28,6 +28,7 @@ class Browser(object):
         self.default = default.copy()
         self.payload = {}
         self.xpath = xpath
+        self.exclude_xpath = exclude_xpath
         self.seperator = seperator
         self.link_conversion = link_conversion
 
@@ -60,6 +61,8 @@ class Browser(object):
             selected = doc.xpath(xpath)
             if self.link_conversion:
                 list(map(self.convert_links, selected))
+            if self.exclude_xpath:
+                list(map(self.remove_xpath, selected))
             return self.seperator.join([etree.tostring(node).decode('utf-8').replace('\\n','') for node in selected])
 
         def extract_text(xpath):
@@ -73,6 +76,11 @@ class Browser(object):
         else:
             selected  = [extract_text(xpath) for xpath in self.xpath]
         return selected
+
+    def remove_xpath(self, node):
+        for xpath in self.exclude_xpath:
+            tags_to_remove = node.xpath(xpath)
+            list(map(lambda tag:tag.getparent().remove(tag), tags_to_remove))
 
     def convert_links(self, node):
         def replace_a_href(a_tag):
@@ -98,13 +106,13 @@ class Browser(object):
         self.cache.close()
 
 services = {
-    'rc': Browser('reverso', "https://context.reverso.net/bst-query-service", "reverso_context.html", {'source_lang': 'en', 'target_lang': 'zh', 'source_text': '', 'target_text': '', 'mode': '1', 'nrows': '50'}),
+    'reverso-context': Browser('reverso', "https://context.reverso.net/bst-query-service", "reverso_context.html", {'source_lang': 'en', 'target_lang': 'zh', 'source_text': '', 'target_text': '', 'mode': '1', 'nrows': '50'}),
     'deepl': Browser('deepl', "https://www2.deepl.com/jsonrpc", "deepl.html",
-        {"jsonrpc":"2.0","method": "LMT_handle_jobs","params":{"jobs":[{"kind":"default","sentences":[{"text":"Tell me the story","id":0,"prefix":""}],"raw_en_context_before":[],"raw_en_context_after":[],"preferred_num_beams":4,"quality":"fast"}],"lang":{"user_preferred_langs":["ZH","EN"],"source_lang_user_selected":"auto","target_lang":"ZH"},"priority":-1,"commonJobParams":{"browserType":129,"formality":None},"apps":{"usage":5},"timestamp":1646624556415},"id":48930046}
+        {"jsonrpc":"2.0","method": "LMT_handle_jobs","params":{"jobs":[{"kind":"default","sentences":[{"text":"","id":0,"prefix":""}],"raw_en_context_before":[],"raw_en_context_after":[],"preferred_num_beams":4,"quality":"fast"}],"lang":{"user_preferred_langs":["ZH","EN"],"source_lang_user_selected":"auto","target_lang":"ZH"},"priority":-1,"commonJobParams":{"browserType":129,"formality":None},"apps":{"usage":5},"timestamp":1646624556415},"id":48930046}
         ),
-    'mw': Browser('merriam-webster', 'https://www.merriam-webster.com/dictionary/{query}', 'dictionary.html', {'query': '', 'extract': 'html'}, xpath=['//*[@class="vg" or @class="drp" or @class="fl" or @class="hword"]'], link_conversion={'mw_t_sx': '/dictionary/([a-zA-Z \+]+)#*', 'mw_t_d_link': '/dictionary/([a-zA-Z \+]+)#*', 'mw_t_a_link': '/dictionary/([a-zA-Z \+]+)#*', 'important-blue-link': '/dictionary/([a-zA-Z \+]+)#*'}),
-    'collins': Browser('collins', 'https://www.collinsdictionary.com/zh/dictionary/{source_lang}-{target_lang}/mandarin/{query}', 'dictionary.html', {'query': '', 'source_lang': 'english', 'target_lang': 'chinese', 'extract': 'html'}, headers={'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36'}, xpath=['//*[@class="he"]']),
-    'linguee': Browser('linguee', 'https://www.linguee.com/{source_lang}-{target_lang}/search?source=auto&query={query}', 'dictionary.html', {'query': '', 'source_lang': 'english', 'target_lang': 'chinese', 'extract': 'html'}, xpath=['//div[@class="isMainTerm"]', '//div[@class="isForeignTerm"]', '//table[@class="result_table"]//tr'], seperator = "<hr>", link_conversion={'dictLink': '/translation/(.*).html$', 'dictLink featured': '/translation/(.*).html$'}),
+    'merriam-webster': Browser('merriam-webster', 'https://www.merriam-webster.com/dictionary/{query}', 'dictionary.html', {'query': '', 'extract': 'html'}, xpath=['//*[@class="vg" or @class="drp" or @class="fl" or @class="hword"]'], link_conversion={'mw_t_sx': '/dictionary/([a-zA-Z \+]+)#*', 'mw_t_d_link': '/dictionary/([a-zA-Z \+]+)#*', 'mw_t_a_link': '/dictionary/([a-zA-Z \+]+)#*', 'important-blue-link': '/dictionary/([a-zA-Z \+]+)#*', 'mw_t_dxt': '/dictionary/([a-zA-Z \+]+)#*'}),
+    'collins': Browser('collins', 'https://www.collinsdictionary.com/zh/dictionary/{source_lang}-{target_lang}/{query}', 'dictionary.html', {'query': '', 'source_lang': 'english', 'target_lang': 'chinese', 'extract': 'html'}, headers={'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36'}, xpath=['//*[@class="he"]']),
+    'linguee': Browser('linguee', 'https://www.linguee.com/{source_lang}-{target_lang}/search?source=auto&query={query}', 'dictionary.html', {'query': '', 'source_lang': 'english', 'target_lang': 'chinese', 'extract': 'html'}, xpath=['//div[@class="isMainTerm"]', '//div[@class="isForeignTerm"]', '//table[@class="result_table"]//tr'], exclude_xpath=['//*[not(normalize-space())]'], seperator = "<hr>", link_conversion={'dictLink': '/translation/(.*).html$', 'dictLink featured': '/translation/(.*).html$'}),
 }
 
 @atexit.register
@@ -123,7 +131,9 @@ def index(service=None):
     if service is None:
         responses = {}
         responses['DeepL'] = services['deepl'].render(**{'params.jobs[0].sentences[0].text': request.args['query']})
-        responses['Reverso Context'] = services['rc'].render(**{'source_text': request.args['query'], 'nrows': 5})
+        responses['Reverso Context'] = services['reverso-context'].render(**{'source_text': request.args['query'], 'nrows': 5})
+        for s_name in ['merriam-webster', 'linguee']:
+            responses[s_name] =services[s_name].render(**request.args)
         return render_template('index.html', responses=responses)
     elif ',' in service:
         responses = {}
