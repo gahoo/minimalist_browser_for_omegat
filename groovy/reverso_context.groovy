@@ -54,7 +54,7 @@ Action action = new AbstractAction() {
     void actionPerformed(ActionEvent e) {
         q = ScriptHelpers.prepareText(Core.getEditor().getSelectedText(), caretWord)
         if (q == null) return
-        url = "${URL}${ScriptHelpers.encodeText(sourceTextEntry.srcText)}"
+        url = "${URL}${ScriptHelpers.encodeText(q)}"
         println(url)
         pane.getBrowser().loadURL(url)
     }

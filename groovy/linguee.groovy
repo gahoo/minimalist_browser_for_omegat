@@ -85,7 +85,7 @@ def entryEventListener = new IEntryEventListener() {
 
     @Override
     void onEntryActivated(SourceTextEntry sourceTextEntry) {
-        url = "${URL}${ScriptHelpers.encodeText(q)}"
+        url = "${URL}${ScriptHelpers.encodeText(sourceTextEntry.srcText)}"
         println(url)
         pane.getBrowser().loadURL(url)
     }
