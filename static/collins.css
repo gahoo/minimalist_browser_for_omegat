@@ -1,0 +1,8 @@
+h2, h3, ol {
+    margin-block-start: 4px;
+    margin-block-end: 4px;
+}
+
+h3.gramGrp {
+    background-color: pink;
+}
