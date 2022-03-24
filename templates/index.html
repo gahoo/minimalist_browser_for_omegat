@@ -2,22 +2,32 @@
 <html>
 <head>
 <style>
-body {font-size: 65%;}
-button, input {font-size: 75%;}
+/*body {font-size: 65%;}*/
+button, input {font-size: 65%;}
 .entry {border: solid 1px; border-color: lightgrey; padding: 0.2px;}
 em   {font-weight: bold; color: red; background-color: lemonchiffon;}
 #navi { display: none;}
 #debug { display: none;}
 #show_debug:checked + #debug { display: block;}
+hr {margin-top: 2px;margin-bottom: 2px;}
 </style>
 </head>
 <body>
 	<div>
+	<div class="navitab">
+	{% for k in responses.keys() %}
+	<a href="#{{ k }}" style="border: solid; margin: 1px; padding: 1px; font-size: 1.2em">{{ k }}</a>
+	{% endfor %}
+	</div>
 	{% for k, v in responses.items() %}
-	<h2>{{ k }}</h2>
+	<h2 id="{{ k }}" style="background-color: lightgrey"><a href="#">{{ k }}</a></h2>
 	{{ v|safe }}
 	<hr>
 	{% endfor %}
 	</div>
+	<a href="#" style="position:fixed; top:5px; right:20px">⬆️</a>
 </body>
+<style>
+h1, h2, h3, h4 {margin-top: 2px;margin-bottom: 2px;}
+</style>
 </html>
