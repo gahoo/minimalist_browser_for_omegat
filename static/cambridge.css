@@ -483,8 +483,12 @@ h1,h2,h3,h4,h5,h6,.h1,.h2,.h3,.h4,.h5,.h6{
 h1,.h1{
     font-size:1.875rem
 }
+.h2_entry{
+    font-size:1em;
+    font-weight: bold
+}
 h2,.h2{
-    font-size:1.5rem
+    font-size:1.5rem;
 }
 h3,.h3{
     font-size:1.3125rem
@@ -502,7 +506,7 @@ h6,.h6{
     letter-spacing:1px
 }
 p{
-    line-height:1.4;
+    /*line-height:1.4;*/
     margin:10px 0
 }
 a{
@@ -516,7 +520,7 @@ a:hover{
 ul,ol{
     margin:0 0 20px 15px;
     padding:0;
-    line-height:1.5em
+    /*line-height:1.5em*/
 }
 li{
     margin:0 0 10px
@@ -534,7 +538,7 @@ li ol{
 }
 dl{
     margin:0 0 30px;
-    line-height:1.5em
+    /*line-height:1.5em*/
 }
 dt{
     color:#111;
@@ -549,7 +553,7 @@ img{
     height:auto
 }
 hr{
-    margin:30px 0;
+    /*margin:30px 0;*/
     height:1px;
     border:0;
     border-top:1px solid #e6e6eb
@@ -1283,8 +1287,14 @@ section[expanded] .ca_c{
 .ha,.han a{
     text-decoration:none
 }
+.xref:hover > .hax{
+    display: inline-flex
+}
 .hax {
     display: inline-flex
+}
+.xref > .hax{
+    display: none
 }
 .ha:hover,.han a:hover,.had a,.haf,.hax a:hover .haxa{
     text-decoration:underline
@@ -1845,8 +1855,14 @@ a.tc-bia{
     font-style:italic
 }
 .dsense{
-    border-top:solid 3px #5d2fc1;
+    /*border-top:solid 1px #5d2fc1;*/
     /*margin-bottom:30px*/
+}
+.def-block:hover > .ddef_h {
+    display: block
+}
+.ddef_h {
+    display: none
 }
 .dsense-noh{
     border-color:#fff
@@ -2023,7 +2039,7 @@ a.tc-bia{
     padding-left:12px;
     display:none
 }
-.def-body:hover > .dexamp{
+.def-block:hover > .def-body > .dexamp{
     display:block
 }
 .dexamp::before{
@@ -2076,15 +2092,15 @@ a.tc-bia{
 }
 .ddef_d{
     /*margin-top:10px;*/
-    font-size:18px;
-    line-height:1.5
+    /*font-size:18px;*/
+    /*line-height:1.5*/
 }
 .daccord_b .dexamp,.ddef_b .dexamp{
     margin-right:22px;
     position:relative;
     /*font-size:17px;*/
     /*margin-bottom:10px;*/
-    line-height:1.4
+    /*line-height:1.4*/
 }
 .ddef_b>.dtrans-se{
     display:block;
@@ -2133,6 +2149,12 @@ a.tc-bia{
 }
 .dwla i.fas{
     font-size:12px
+}
+.di-title{
+    background-color: orange
+}
+.def-info{
+    display: none
 }
 .di-body>.idiom-block>.idiom-block>.di-title,.di-body>.idiom-block>.idiom-block>.di-info,.dsense_h,.ddef_block{
     padding-left:10px;
@@ -2683,13 +2705,13 @@ div.x::after,.lcs::after{
     margin-right:20px
 }
 .lmt-25{
-    margin-top:25px
+    margin-top:2px
 }
 .lml-25{
     margin-left:25px
 }
 .lmb-25{
-    margin-bottom:25px
+    margin-bottom:2px
 }
 .lmr-25{
     margin-right:25px
@@ -5443,10 +5465,12 @@ iframe[name="__cmpLocator"]{
     }
 }
 .dphrase-title{
-    font-size:18px
+    /*font-size:18px*/
 }
 .ddef_b>.trans{
-    font-size:17px
+    font-size:0.95rem;
+    font-weight:bold;
+    color:firebrick
 }
 .ddef_b .dexamp{
     /*font-size:17px*/
@@ -5486,7 +5510,7 @@ iframe[name="__cmpLocator"]{
     position:absolute;
     right:-16px;
     top:0;
-    line-height:24px
+    /*line-height:24px*/
 }
 .ex-td{
     border:0;
