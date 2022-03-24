@@ -17,12 +17,14 @@ class Browser(object):
     def __init__(self, name, url, template, default={}, headers={}, xpath=[], exclude_xpath=[], seperator="", link_conversion={}):
         self.name = name
         self.url = url
-        self.headers = {
-                'accept': 'application/json, text/javascript, */*; q=0.01', 
-                'content-type': 'application/json; charset=UTF-8', 
-                'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36', 
-                'accept-language': 'zh-CN,zh;q=0.9'}
-        self.headers.update(headers)
+        if headers:
+            self.headers = headers
+        else:
+            self.headers = {
+                    'accept': 'application/json, text/javascript, */*; q=0.01', 
+                    'content-type': 'application/json; charset=UTF-8', 
+                    'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36', 
+                    'accept-language': 'zh-CN,zh;q=0.9'}
         self.cache = shelve.open("caches/" + name)
         self.template = template
         self.default = default.copy()
@@ -40,9 +42,9 @@ class Browser(object):
         self.payload = benedict(self.default.copy())
         for k, v in kwargs.items():
             self.payload[k] = v
-        print(self.payload)
         request_key = "_".join(map(str, self.payload.values()))
         if request_key in self.cache and not do_refresh:
+            print('Cache Key Hit: ' + request_key)
             resp = self.cache[request_key]
         else:
             if self.xpath:
@@ -111,7 +113,7 @@ services = {
         {"jsonrpc":"2.0","method": "LMT_handle_jobs","params":{"jobs":[{"kind":"default","sentences":[{"text":"","id":0,"prefix":""}],"raw_en_context_before":[],"raw_en_context_after":[],"preferred_num_beams":4,"quality":"fast"}],"lang":{"user_preferred_langs":["ZH","EN"],"source_lang_user_selected":"auto","target_lang":"ZH"},"priority":-1,"commonJobParams":{"browserType":129,"formality":None},"apps":{"usage":5},"timestamp":1646624556415},"id":48930046}
         ),
     'merriam-webster': Browser('merriam-webster', 'https://www.merriam-webster.com/dictionary/{query}', 'dictionary.html', {'query': '', 'extract': 'html'}, xpath=['//*[@class="vg" or @class="drp" or @class="fl" or @class="hword"]'], link_conversion={'mw_t_sx': '/dictionary/([a-zA-Z \+]+)#*', 'mw_t_d_link': '/dictionary/([a-zA-Z \+]+)#*', 'mw_t_a_link': '/dictionary/([a-zA-Z \+]+)#*', 'important-blue-link': '/dictionary/([a-zA-Z \+]+)#*', 'mw_t_dxt': '/dictionary/([a-zA-Z \+]+)#*'}),
-    'collins': Browser('collins', 'https://www.collinsdictionary.com/zh/dictionary/{source_lang}-{target_lang}/{query}', 'dictionary.html', {'query': '', 'source_lang': 'english', 'target_lang': 'chinese', 'extract': 'html'}, headers={'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36'}, xpath=['//*[@class="he"]']),
+'collins': Browser('collins', 'https://www.collinsdictionary.com/zh/search/?dictCode={source_lang}-{target_lang}&q={query}', 'dictionary.html', {'query': '', 'source_lang': 'english', 'target_lang': 'chinese', 'extract': 'html'}, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:98.0) Gecko/20100101 Firefox/98.0', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8'}, xpath=['//*[@class="he"]'], exclude_xpath=['//*[@class="socialButtons"]'], link_conversion={'xr_ref_link': '.*/(.*)#'}),
     'linguee': Browser('linguee', 'https://www.linguee.com/{source_lang}-{target_lang}/search?source=auto&query={query}', 'dictionary.html', {'query': '', 'source_lang': 'english', 'target_lang': 'chinese', 'extract': 'html'}, xpath=['//div[@class="isMainTerm"]', '//div[@class="isForeignTerm"]', '//table[@class="result_table"]//tr'], exclude_xpath=['//*[not(normalize-space())]'], seperator = "<hr>", link_conversion={'dictLink': '/translation/(.*).html$', 'dictLink featured': '/translation/(.*).html$'}),
 }
 
