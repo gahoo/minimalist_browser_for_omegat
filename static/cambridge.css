@@ -518,12 +518,12 @@ a:hover{
     text-decoration:none
 }
 ul,ol{
-    margin:0 0 20px 15px;
+    margin:0 0 0px 0px;
     padding:0;
     /*line-height:1.5em*/
 }
 li{
-    margin:0 0 10px
+    margin:0 0 4px
 }
 li ul,li ol{
     margin-top:10px;
