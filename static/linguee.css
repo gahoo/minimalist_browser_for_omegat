@@ -994,6 +994,12 @@ a.audio{
     padding-left:120px;
     opacity:.7
 } */
+.example_lines:hover > .expandable{
+    display:block
+}
+.expandable{
+    display:none
+}
 a.expand_i{
     /* width:17px; */
     /* height:17px; */
