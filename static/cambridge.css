@@ -1287,11 +1287,13 @@ section[expanded] .ca_c{
 .ha,.han a{
     text-decoration:none
 }
-.xref:hover > .hax{
-    display: inline-flex
+.xref{
+    display: inline-flex;
+    max-width: 95%
 }
-.hax {
-    display: inline-flex
+.xref:hover > .hax{
+    display: inline-flex;
+    max-width: 95%
 }
 .xref > .hax{
     display: none
@@ -2014,6 +2016,12 @@ a.tc-bia{
     top:-0.5em;
     font-size:75%
 }
+.query{
+    font-weight: bold
+}
+span.db{
+    background-color: yellow
+}
 .db{
     font-weight:700
 }
@@ -2359,6 +2367,8 @@ h1.dbrowse .pos{
 }
 .lcs{
     display:inline-flex;
+    flex-wrap: wrap;
+    flex-direction: row;
     width: 100%
 }
 /*div.x::before,.lcs::before{
@@ -2419,9 +2429,13 @@ div.x::after,.lcs::after{
 }
 .lmb-12, .lc{
 /*    float:left*/
-    border: dashed;
-    margin: 4px;
-    padding: 4px
+    flex: 1;
+    white-space: nowrap;
+    border: dotted;
+    border-width: 1px;
+    text-align: center;
+    margin: 2px;
+    padding: 2px
 }
 .lc0{
     width:0
@@ -2702,11 +2716,14 @@ div.x::after,.lcs::after{
     /*margin-bottom:20px*/
 }
 .dbrowse {
-    display: none
+    display: inline-flex;
+    flex-wrap: wrap;
+    max-width: 95%
 }
-.lmb-20:hover > .dbrowse {
-    display: inline-flex
-}
+/*.lmb-20:hover > .dbrowse {
+    display: inline-flex;
+    flex-wrap: wrap;
+}*/
 .lmr-20{
     margin-right:20px
 }
@@ -5719,4 +5736,3 @@ html[class*='standalone'] .nojs{
 html[class*='standalone'] .js{
     display:inherit
 }
-
