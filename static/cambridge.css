@@ -1292,11 +1292,12 @@ section[expanded] .ca_c{
     max-width: 95%
 }
 .xref:hover > .hax{
-    display: inline-flex;
-    max-width: 95%
+    max-height:1800px;
+    transition-delay: 1s;
 }
 .xref > .hax{
-    display: none
+    max-height:0;
+    overflow: hidden;
 }
 .ha:hover,.han a:hover,.had a,.haf,.hax a:hover .haxa{
     text-decoration:underline
@@ -1861,10 +1862,12 @@ a.tc-bia{
     /*margin-bottom:30px*/
 }
 .def-block:hover > .ddef_h {
-    display: block
+    max-height:1800px;
+    transition-delay: 1.5s;
 }
 .ddef_h {
-    display: none
+    max-height:0;
+    overflow: hidden;
 }
 .dsense-noh{
     border-color:#fff
@@ -2045,10 +2048,12 @@ span.db{
 .dexamp{
     position:relative;
     padding-left:12px;
-    display:none
+    max-height:0;
+    overflow: hidden;
 }
 .def-block:hover > .def-body > .dexamp{
-    display:block
+    max-height:1800px;
+    transition-delay: 1.5s;
 }
 .dexamp::before{
     content:"•";
@@ -2087,7 +2092,7 @@ span.db{
     /*font-size:18px*/
 }
 .ddef_b .xref.see_also{
-    margin-top:20px
+    /*margin-top:20px*/
 }
 .ddef_h{
 /*    margin:15px 0 20px*/

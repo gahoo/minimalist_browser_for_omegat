@@ -995,10 +995,14 @@ a.audio{
     opacity:.7
 } */
 .example_lines:hover > .expandable{
-    display:block
+    max-height:1800px;
+    transition-delay: 1.5s;
 }
 .expandable{
-    display:none
+    max-height:0;
+    overflow: hidden;
+}
+.expandable{
 }
 a.expand_i{
     /* width:17px; */
