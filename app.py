@@ -33,6 +33,7 @@ class Browser(object):
         self.exclude_xpath = exclude_xpath
         self.seperator = seperator
         self.link_conversion = link_conversion
+        self.response = None
 
     def query(self, **kwargs):
         if 'refresh' in kwargs and kwargs.pop('refresh') == 'true':
@@ -45,14 +46,13 @@ class Browser(object):
         request_key = "_".join(map(str, self.payload.values()))
         if request_key in self.cache and not do_refresh:
             print('Cache Key Hit: ' + request_key)
-            resp = self.cache[request_key]
+            self.response = self.cache[request_key]
         else:
             if self.xpath:
-                resp = self.get()
+                self.response = self.get()
             else:
-                resp = self.post()
-            self.cache[request_key] = resp
-        return resp
+                self.response = self.post()
+            self.cache[request_key] = self.response
 
     def post(self):
         r = requests.post(self.url, data=json.dumps(self.payload), headers=self.headers)
@@ -91,32 +91,35 @@ class Browser(object):
                 query = has_found_query.group(1)
                 a_tag.set('href', '?query={query}'.format(query=query))
 
-        for a_class, regex in self.link_conversion.items():
-            a_tags = node.xpath('//a[@class="{a_class}"]'.format(a_class=a_class))
+        for xpath, regex in self.link_conversion.items():
+            a_tags = node.xpath(xpath)
             list(map(replace_a_href, a_tags))
 
     def render(self, **kwargs):
-        resp = self.query(**kwargs)
-        if isinstance(resp, dict):
-            debug_json = dict([(k, v) for k, v in resp.items() if k != 'list' and v is not None and v != []])
-            return render_template(self.template, raw_json = json.dumps(debug_json, indent=4, ensure_ascii=False), payload=self.payload, **resp)
+        self.query(**kwargs)
+        if isinstance(self.response, dict):
+            debug_json = dict([(k, v) for k, v in self.response.items() if k != 'list' and v is not None and v != []])
+            return render_template(self.template, raw_json = json.dumps(debug_json, indent=4, ensure_ascii=False), payload=self.payload, **self.response)
         else:
-            return render_template(self.template, payload=self.payload, responses=resp, service_name=self.name, url=self.url.format(**self.payload))
+            return render_template(self.template, payload=self.payload, responses=self.response, service_name=self.name, url=self.url.format(**self.payload))
 
     def close_cache(self):
         print("Closing cache")
         self.cache.close()
+
+    def has_empty_response(self):
+        return "".join(self.response) == ""
 
 services = {
     'reverso-context': Browser('reverso', "https://context.reverso.net/bst-query-service", "reverso_context.html", {'source_lang': 'en', 'target_lang': 'zh', 'source_text': '', 'target_text': '', 'mode': '1', 'nrows': '50'}),
     'deepl': Browser('deepl', "https://www2.deepl.com/jsonrpc", "deepl.html",
         {"jsonrpc":"2.0","method": "LMT_handle_jobs","params":{"jobs":[{"kind":"default","sentences":[{"text":"","id":0,"prefix":""}],"raw_en_context_before":[],"raw_en_context_after":[],"preferred_num_beams":4,"quality":"fast"}],"lang":{"user_preferred_langs":["ZH","EN"],"source_lang_user_selected":"auto","target_lang":"ZH"},"priority":-1,"commonJobParams":{"browserType":129,"formality":None},"apps":{"usage":5},"timestamp":1646624556415},"id":48930046}
         ),
-    'merriam-webster': Browser('merriam-webster', 'https://www.merriam-webster.com/dictionary/{query}', 'dictionary.html', {'query': '', 'extract': 'html'}, xpath=['//*[@class="vg" or @class="drp" or @class="fl" or @class="hword"]'], link_conversion={'mw_t_sx': '/dictionary/([a-zA-Z \+]+)#*', 'mw_t_d_link': '/dictionary/([a-zA-Z \+]+)#*', 'mw_t_a_link': '/dictionary/([a-zA-Z \+]+)#*', 'important-blue-link': '/dictionary/([a-zA-Z \+]+)#*', 'mw_t_dxt': '/dictionary/([a-zA-Z \+]+)#*'}),
-'collins': Browser('collins', 'https://www.collinsdictionary.com/zh/search/?dictCode={source_lang}-{target_lang}&q={query}', 'dictionary.html', {'query': '', 'source_lang': 'english', 'target_lang': 'chinese', 'extract': 'html'}, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:98.0) Gecko/20100101 Firefox/98.0', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8'}, xpath=['//div[@class="he"]/div'], exclude_xpath=['//*[@class="socialButtons"]', '//a[@class="hwd_sound sound audio_play_button icon-volume-up ptr"]', '//div[@class="mpuslot_b-container"]', '//script'], link_conversion={'xr_ref_link': '.*/(.*)#'}),
-    'linguee': Browser('linguee', 'https://www.linguee.com/{source_lang}-{target_lang}/search?source=auto&query={query}', 'dictionary.html', {'query': '', 'source_lang': 'english', 'target_lang': 'chinese', 'extract': 'html'}, xpath=['//div[@class="isMainTerm"]', '//div[@class="isForeignTerm"]', '//table[@class="result_table"]//tr'], exclude_xpath=['//*[not(normalize-space())]'], seperator = "<hr>", link_conversion={'dictLink': '/translation/(.*).html$', 'dictLink featured': '/translation/(.*).html$'}),
-    'linguee-lite': Browser('linguee-lite', 'https://www.linguee.com/{source_lang}-{target_lang}/search?source=auto&query={query}', 'dictionary.html', {'query': '', 'source_lang': 'english', 'target_lang': 'chinese', 'extract': 'html'}, xpath=['//div[@class="isMainTerm"]', '//div[@class="isForeignTerm"]'], exclude_xpath=['//*[not(normalize-space())]'], seperator = "<hr>", link_conversion={'dictLink': '/translation/(.*).html$', 'dictLink featured': '/translation/(.*).html$'}),
-    'cambridge': Browser('cambridge', 'https://dictionary.cambridge.org/dictionary/{source_lang}-{target_lang}-simplified/{query}', 'dictionary.html', {'query': '', 'source_lang': 'english', 'target_lang': 'chinese', 'extract': 'html'}, xpath=['//div[@class="entry"]', '//div[@class="idiom-block"]', '//div[@class="lmb-20"]'], exclude_xpath=['//*[not(normalize-space())]', '//span[@class="daud"]', '//div[@class="daccord"]', '//div[contains(@class,"grammar")]', '//span[contains(@class,"headword")]', '//script'], seperator = "<hr>", link_conversion={'query': '.*/(.*)$'}),
+    'merriam-webster': Browser('merriam-webster', 'https://www.merriam-webster.com/dictionary/{query}', 'dictionary.html', {'query': '', 'extract': 'html'}, xpath=['//*[@class="vg" or @class="drp" or @class="fl"]'], link_conversion={'//a[@class="mw_t_sx" or @class="mw_t_d_link" or @class="mw_t_a_link" or @class="important-blue-link" or @class="mw_t_dxt"]': '/dictionary/([a-zA-Z \+]+)#*'}),
+'collins': Browser('collins', 'https://www.collinsdictionary.com/zh/search/?dictCode={source_lang}-{target_lang}&q={query}', 'dictionary.html', {'query': '', 'source_lang': 'english', 'target_lang': 'chinese', 'extract': 'html'}, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:98.0) Gecko/20100101 Firefox/98.0', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8'}, xpath=['//div[@class="he"]/div'], exclude_xpath=['//*[@class="socialButtons"]', '//a[@class="hwd_sound sound audio_play_button icon-volume-up ptr"]', '//div[@class="mpuslot_b-container"]', '//script'], link_conversion={'//a[@class="xr_ref_link"]': '.*/(.*)#'}),
+    'linguee': Browser('linguee', 'https://www.linguee.com/{source_lang}-{target_lang}/search?source=auto&query={query}', 'dictionary.html', {'query': '', 'source_lang': 'english', 'target_lang': 'chinese', 'extract': 'html'}, xpath=['//div[@class="isMainTerm"]', '//div[@class="isForeignTerm"]', '//table[@class="result_table"]//tr'], exclude_xpath=['//*[not(normalize-space())]'], seperator = "<hr>", link_conversion={'//a[contains(@class, "dictLink")]': '/translation/(.*).html$'}),
+    'linguee-lite': Browser('linguee-lite', 'https://www.linguee.com/{source_lang}-{target_lang}/search?source=auto&query={query}', 'dictionary.html', {'query': '', 'source_lang': 'english', 'target_lang': 'chinese', 'extract': 'html'}, xpath=['//div[@class="isMainTerm"]', '//div[@class="isForeignTerm"]'], exclude_xpath=['//*[not(normalize-space())]'], seperator = "<hr>", link_conversion={'//a[contains(@class, "dictLink")]': '/translation/(.*).html$'}),
+    'cambridge': Browser('cambridge', 'https://dictionary.cambridge.org/dictionary/{source_lang}-{target_lang}-simplified/{query}', 'dictionary.html', {'query': '', 'source_lang': 'english', 'target_lang': 'chinese', 'extract': 'html'}, xpath=['//div[@class="entry"]', '//div[@class="idiom-block"]', '//div[@class="lmb-20"]'], exclude_xpath=['//*[not(normalize-space())]', '//span[@class="daud"]', '//div[@class="daccord"]', '//div[contains(@class,"grammar")]', '//span[contains(@class,"headword")]', '//script'], seperator = "<hr>", link_conversion={'//a[@class="query"]': '.*/(.*)$', '//div[@class="lmb-12" or contains(@class, "item")]/a': '.*/(.*)$'}),
 }
 
 @atexit.register
@@ -143,7 +146,7 @@ def index(service=None):
         responses = {}
         for s_name in service.split(','):
             responses[s_name] =services[s_name].render(**request.args)
-        return render_template('index.html', responses=responses)
+        return render_template('index.html', responses=responses, services=services, payload=services[s_name].payload)
     else:
     	return services[service].render(**request.args)
 
