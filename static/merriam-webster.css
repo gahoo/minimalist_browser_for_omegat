@@ -13,10 +13,12 @@ article,aside,details,figcaption,figure,footer,header,hgroup,menu,nav,section{
     font-size: 16px;
     font-weight: bold;
 }
+.fl {
+    background-color: Khaki
+}
 .hword {
     font-size: 20px;
     font-weight: bold;
-    background-color: lightskyblue
 }
 span.num{
     font-weight: bold;
