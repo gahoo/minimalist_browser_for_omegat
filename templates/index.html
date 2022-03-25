@@ -10,19 +10,33 @@ em   {font-weight: bold; color: red; background-color: lemonchiffon;}
 #debug { display: none;}
 #show_debug:checked + #debug { display: block;}
 hr {margin-top: 2px;margin-bottom: 2px;}
+#go, #refresh { display:none }
+.navitab, #query_top {display:inline}
+#query_top:focus + #go { display:inline }
+#query_top:focus + #go + #refresh { display:inline }
+#go:hover {display:inline}
+#refresh:hover {display:inline}
 </style>
 </head>
 <body>
 	<div>
 	<div class="navitab">
+	<button onclick="history.back()">🔙</button>
 	{% for k in responses.keys() %}
+	{% if not services[k].has_empty_response() %}
 	<a href="#{{ k }}" style="border: solid; margin: 1px; padding: 1px; font-size: 1.2em">{{ k }}</a>
+	{% endif %}
 	{% endfor %}
+	<input id='query_top' type="text" value="{{ payload.query }}">
+	<input id='go' type=button onClick="parent.location='?query=' + document.getElementById('query').value" value='GO'>
+	<input id='refresh' type=button onClick="parent.location='?query={{ payload.query }}&refresh=true'" value='Refresh'>
 	</div>
 	{% for k, v in responses.items() %}
+	{% if not services[k].has_empty_response() %}
 	<h2 id="{{ k }}" style="background-color: lightgrey"><a href="#">{{ k }}</a></h2>
 	{{ v|safe }}
 	<hr>
+	{% endif %}
 	{% endfor %}
 	</div>
 	<a href="#" style="position:fixed; top:5px; right:20px">⬆️</a>
