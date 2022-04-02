@@ -28,7 +28,7 @@ hr {margin-top: 2px;margin-bottom: 2px;}
 	{% endif %}
 	{% endfor %}
 	<input id='query_top' type="text" value="{{ payload.query }}" size=12>
-	<input id='go' type=button onClick="parent.location='?query=' + document.getElementById('query').value" value='GO'>
+	<input id='go' type=button onClick="parent.location='?query=' + document.getElementById('query_top').value" value='GO'>
 	<input id='refresh' type=button onClick="parent.location='?query={{ payload.query }}&refresh=true'" value='Refresh'>
 	</div>
 	{% for k, v in responses.items() %}
