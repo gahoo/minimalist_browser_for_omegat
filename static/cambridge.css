@@ -1863,7 +1863,7 @@ a.tc-bia{
 }
 .def-block:hover > .ddef_h {
     max-height:1800px;
-    transition-delay: 1.5s;
+    transition-delay: 1s;
 }
 .ddef_h {
     max-height:0;
@@ -2053,7 +2053,7 @@ span.db{
 }
 .def-block:hover > .def-body > .dexamp{
     max-height:1800px;
-    transition-delay: 1.5s;
+    transition-delay: 1s;
 }
 .dexamp::before{
     content:"•";
