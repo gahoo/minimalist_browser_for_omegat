@@ -9,6 +9,9 @@ import time
 import re
 from benedict import benedict
 from lxml import html, etree
+import aiohttp
+import asyncio
+
 
 
 app = Flask(__name__)
@@ -35,7 +38,7 @@ class Browser(object):
         self.link_conversion = link_conversion
         self.response = None
 
-    def query(self, **kwargs):
+    async def query(self, session, **kwargs):
         if 'refresh' in kwargs and kwargs.pop('refresh') == 'true':
             do_refresh = True
         else:
@@ -49,16 +52,16 @@ class Browser(object):
             self.response = self.cache[request_key]
         else:
             if self.xpath:
-                self.response = self.get()
+                self.response = await self.get(session)
             else:
-                self.response = self.post()
+                self.response = await self.post(session)
             self.cache[request_key] = self.response
 
-    def post(self):
-        r = requests.post(self.url, data=json.dumps(self.payload), headers=self.headers)
-        return r.json().copy()
+    async def post(self, session):
+        r = await session.request(method="POST",url=self.url, data=json.dumps(self.payload), headers=self.headers)
+        return await r.json()
 
-    def get(self):
+    async def get(self, session):
         def extract_html(xpath):
             selected = doc.xpath(xpath)
             if self.link_conversion:
@@ -71,8 +74,8 @@ class Browser(object):
             return "</br>".join([node.text_content() for node in doc.xpath(xpath)])
 
         print(self.url.format(**self.payload))
-        r = requests.get(self.url.format(**self.payload), headers=self.headers)
-        doc = html.fromstring(r.content)
+        r = await session.request(method="GET", url=self.url.format(**self.payload), headers=self.headers)
+        doc = html.fromstring(await r.text())
         if self.payload['extract'] == 'html':
             selected  = [extract_html(xpath) for xpath in self.xpath]
         else:
@@ -95,8 +98,7 @@ class Browser(object):
             a_tags = node.xpath(xpath)
             list(map(replace_a_href, a_tags))
 
-    def render(self, **kwargs):
-        self.query(**kwargs)
+    def render(self):
         if isinstance(self.response, dict):
             debug_json = dict([(k, v) for k, v in self.response.items() if k != 'list' and v is not None and v != []])
             return render_template(self.template, raw_json = json.dumps(debug_json, indent=4, ensure_ascii=False), payload=self.payload, **self.response)
@@ -116,9 +118,9 @@ services = {
         {"jsonrpc":"2.0","method": "LMT_handle_jobs","params":{"jobs":[{"kind":"default","sentences":[{"text":"","id":0,"prefix":""}],"raw_en_context_before":[],"raw_en_context_after":[],"preferred_num_beams":4,"quality":"fast"}],"lang":{"user_preferred_langs":["ZH","EN"],"source_lang_user_selected":"auto","target_lang":"ZH"},"priority":-1,"commonJobParams":{"browserType":129,"formality":None},"apps":{"usage":5},"timestamp":1646624556415},"id":48930046}
         ),
     'merriam-webster': Browser('merriam-webster', 'https://www.merriam-webster.com/dictionary/{query}', 'dictionary.html', {'query': '', 'extract': 'html'}, xpath=['//*[@class="vg" or @class="drp" or @class="fl"]'], link_conversion={'//a[@class="mw_t_sx" or @class="mw_t_d_link" or @class="mw_t_a_link" or @class="important-blue-link" or @class="mw_t_dxt"]': '/dictionary/([a-zA-Z \+]+)#*'}),
-'collins': Browser('collins', 'https://www.collinsdictionary.com/zh/search/?dictCode={source_lang}-{target_lang}&q={query}', 'dictionary.html', {'query': '', 'source_lang': 'english', 'target_lang': 'chinese', 'extract': 'html'}, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:98.0) Gecko/20100101 Firefox/98.0', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8'}, xpath=['//div[@class="he"]/div'], exclude_xpath=['//*[@class="socialButtons"]', '//a[@class="hwd_sound sound audio_play_button icon-volume-up ptr"]', '//div[@class="mpuslot_b-container"]', '//script'], link_conversion={'//a[@class="xr_ref_link"]': '.*/(.*)#'}),
-    'linguee': Browser('linguee', 'https://www.linguee.com/{source_lang}-{target_lang}/search?source=auto&query={query}', 'dictionary.html', {'query': '', 'source_lang': 'english', 'target_lang': 'chinese', 'extract': 'html'}, xpath=['//div[@class="isMainTerm"]', '//div[@class="isForeignTerm"]', '//table[@class="result_table"]//tr'], exclude_xpath=['//*[not(normalize-space())]'], seperator = "<hr>", link_conversion={'//a[contains(@class, "dictLink")]': '/translation/(.*).html$'}),
-    'linguee-lite': Browser('linguee-lite', 'https://www.linguee.com/{source_lang}-{target_lang}/search?source=auto&query={query}', 'dictionary.html', {'query': '', 'source_lang': 'english', 'target_lang': 'chinese', 'extract': 'html'}, xpath=['//div[@class="isMainTerm"]', '//div[@class="isForeignTerm"]'], exclude_xpath=['//*[not(normalize-space())]'], seperator = "<hr>", link_conversion={'//a[contains(@class, "dictLink")]': '/translation/(.*).html$'}),
+    'collins': Browser('collins', 'https://www.collinsdictionary.com/zh/search/?dictCode={source_lang}-{target_lang}&q={query}', 'dictionary.html', {'query': '', 'source_lang': 'english', 'target_lang': 'chinese', 'extract': 'html'}, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:98.0) Gecko/20100101 Firefox/98.0', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8'}, xpath=['//div[@class="he"]/div'], exclude_xpath=['//*[@class="socialButtons"]', '//a[@class="hwd_sound sound audio_play_button icon-volume-up ptr"]', '//div[@class="mpuslot_b-container"]', '//script'], link_conversion={'//a[@class="xr_ref_link"]': '.*/(.*)#'}),
+    'linguee': Browser('linguee', 'https://www.linguee.com/{source_lang}-{target_lang}/search?source=auto&query={query}', 'dictionary.html', {'query': '', 'source_lang': 'english', 'target_lang': 'chinese', 'extract': 'html'}, xpath=['//div[@class="isMainTerm"]', '//div[@class="isForeignTerm"]', '//table[@class="result_table"]//tr', '//div[@class="textcontent"]/h1'], exclude_xpath=['//*[not(normalize-space())]'], seperator = "<hr>", link_conversion={'//a[contains(@class, "dictLink")]': '/translation/(.*).html$'}),
+    'linguee-lite': Browser('linguee-lite', 'https://www.linguee.com/{source_lang}-{target_lang}/search?source=auto&query={query}', 'dictionary.html', {'query': '', 'source_lang': 'english', 'target_lang': 'chinese', 'extract': 'html'}, xpath=['//div[@class="isMainTerm"]', '//div[@class="isForeignTerm"]', '//div[@class="textcontent"]/h1'], exclude_xpath=['//*[not(normalize-space())]'], seperator = "<hr>", link_conversion={'//a[contains(@class, "dictLink")]': '/translation/(.*).html$'}),
     'cambridge': Browser('cambridge', 'https://dictionary.cambridge.org/dictionary/{source_lang}-{target_lang}-simplified/{query}', 'dictionary.html', {'query': '', 'source_lang': 'english', 'target_lang': 'chinese', 'extract': 'html'}, xpath=['//div[@class="entry"]', '//div[@class="idiom-block"]', '//div[@class="lmb-20"]'], exclude_xpath=['//*[not(normalize-space())]', '//span[@class="daud"]', '//div[@class="daccord"]', '//div[contains(@class,"grammar")]', '//span[contains(@class,"headword")]', '//div[contains(@class, "contentslot")]', '//script'], seperator = "<hr>", link_conversion={'//a[@class="query"]': '.*/(.*)$', '//div[@class="lmb-12" or contains(@class, "item")]/a': '.*/(.*)$'}),
 }
 
@@ -131,24 +133,38 @@ def clean_up():
 def favicon():
     return ''
 
+async def query_services(service_names, **kwargs):
+    async with aiohttp.ClientSession() as session:
+        tasks = []
+        for s_name in service_names:
+            tasks.append(services[s_name].query(session, **kwargs))
+        await asyncio.gather(*tasks)
+
+
 @app.route('/<service>/')
 @app.route('/<service>')
 @app.route('/')
-def index(service=None):
+async def index(service=None):
     if service is None:
         responses = {}
-        responses['DeepL'] = services['deepl'].render(**{'params.jobs[0].sentences[0].text': request.args['query']})
-        responses['Reverso Context'] = services['reverso-context'].render(**{'source_text': request.args['query'], 'nrows': 5})
-        for s_name in ['merriam-webster', 'linguee']:
-            responses[s_name] =services[s_name].render(**request.args)
-        return render_template('index.html', responses=responses)
+        dictionaries = ['linguee-lite', 'collins', 'cambridge', 'merriam-webster']
+        #await query_services(['deepl'], **{'params.jobs[0].sentences[0].text': request.args['query']})
+        await query_services(['reverso-context'], **{'source_text': request.args['query'], 'nrows': 5})
+        #responses['deepl'] = services['deepl'].render()
+        responses['reverso-context'] = services['reverso-context'].render()
+        await query_services(dictionaries, **request.args)
+        for s_name in dictionaries:
+            responses[s_name] =services[s_name].render()
+        return render_template('index.html', responses=responses, services=services, payload=services[s_name].payload)
     elif ',' in service:
+        await query_services(service.split(','), **request.args)
         responses = {}
         for s_name in service.split(','):
-            responses[s_name] =services[s_name].render(**request.args)
+            responses[s_name] = services[s_name].render()
         return render_template('index.html', responses=responses, services=services, payload=services[s_name].payload)
     else:
-    	return services[service].render(**request.args)
+        await query_services([service], **request.args)
+        return services[service].render()
 
 
 if __name__ == '__main__':
