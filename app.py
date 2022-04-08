@@ -3,14 +3,13 @@ from flask import request
 import json
 import pdb
 import requests
-import shelve
-import atexit
 import time
 import re
 from benedict import benedict
 from lxml import html, etree
 import aiohttp
 import asyncio
+from aiohttp_client_cache import CachedSession, SQLiteBackend
 
 
 
@@ -28,7 +27,6 @@ class Browser(object):
                     'content-type': 'application/json; charset=UTF-8', 
                     'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36', 
                     'accept-language': 'zh-CN,zh;q=0.9'}
-        self.cache = shelve.open("caches/" + name)
         self.template = template
         self.default = default.copy()
         self.payload = {}
@@ -46,16 +44,10 @@ class Browser(object):
         self.payload = benedict(self.default.copy())
         for k, v in kwargs.items():
             self.payload[k] = v
-        request_key = "_".join(map(str, self.payload.values()))
-        if request_key in self.cache and not do_refresh:
-            print('Cache Key Hit: ' + request_key)
-            self.response = self.cache[request_key]
+        if self.xpath:
+            self.response = await self.get(session)
         else:
-            if self.xpath:
-                self.response = await self.get(session)
-            else:
-                self.response = await self.post(session)
-            self.cache[request_key] = self.response
+            self.response = await self.post(session)
 
     async def post(self, session):
         r = await session.request(method="POST",url=self.url, data=json.dumps(self.payload), headers=self.headers)
@@ -105,10 +97,6 @@ class Browser(object):
         else:
             return render_template(self.template, payload=self.payload, responses=self.response, service_name=self.name, url=self.url.format(**self.payload))
 
-    def close_cache(self):
-        print("Closing cache")
-        self.cache.close()
-
     def has_empty_response(self):
         return "".join(self.response) == ""
 
@@ -124,17 +112,13 @@ services = {
     'cambridge': Browser('cambridge', 'https://dictionary.cambridge.org/dictionary/{source_lang}-{target_lang}-simplified/{query}', 'dictionary.html', {'query': '', 'source_lang': 'english', 'target_lang': 'chinese', 'extract': 'html'}, xpath=['//div[@class="entry"]', '//div[@class="idiom-block"]', '//div[@class="lmb-20"]'], exclude_xpath=['//*[not(normalize-space())]', '//span[@class="daud"]', '//div[@class="daccord"]', '//div[contains(@class,"grammar")]', '//span[contains(@class,"headword")]', '//div[contains(@class, "contentslot")]', '//script'], seperator = "<hr>", link_conversion={'//a[@class="query"]': '.*/(.*)$', '//div[@class="lmb-12" or contains(@class, "item")]/a': '.*/(.*)$'}),
 }
 
-@atexit.register
-def clean_up():
-    print('Closing Caches')
-    map(lambda x:x.cache.close(), services.values())
 
 @app.route('/favicon.ico')
 def favicon():
     return ''
 
 async def query_services(service_names, **kwargs):
-    async with aiohttp.ClientSession() as session:
+    async with CachedSession(cache=SQLiteBackend('caches')) as session:
         tasks = []
         for s_name in service_names:
             tasks.append(services[s_name].query(session, **kwargs))
