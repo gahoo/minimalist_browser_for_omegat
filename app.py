@@ -118,7 +118,7 @@ def favicon():
     return ''
 
 async def query_services(service_names, **kwargs):
-    async with CachedSession(cache=SQLiteBackend('caches')) as session:
+    async with CachedSession(cache=SQLiteBackend('caches', expire_after=-1)) as session:
         tasks = []
         for s_name in service_names:
             tasks.append(services[s_name].query(session, **kwargs))
