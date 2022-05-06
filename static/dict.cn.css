@@ -1,0 +1,64 @@
+.layout.detail > ol > li {
+    display: inline-block;
+    margin-right: 8px;
+    border: dotted;
+    border-width: thin;
+}
+
+.layout.detail > ol {
+    margin-top: 0;
+}
+
+
+h3 + .layout.ess:hover, h3:hover + .layout.ess{
+    max-height:1800px;
+    transition-delay: 1.5s;
+}
+
+h3 + .layout.sort:hover, h3:hover + .layout.sort{
+    max-height:1800px;
+    transition-delay: 1.5s;
+}
+
+h3 + .layout.discrim:hover, h3:hover + .layout.discrim, .layout.discrim > dl > dt:hover + dd{
+    max-height:1800px;
+    transition-delay: 1.5s;
+}
+
+.layout.sort, .layout.ess, .layout.discrim, .layout.discrim > dl > dd{
+    max-height:0rem;
+    overflow: hidden;
+    transition-delay: 0.5s;
+}
+
+div > h3 {
+    margin-top: 0.1em;
+    margin-bottom: 0.1em
+}
+
+.layout span {
+    padding-right: 0.5em;
+    display: block;
+    font-weight: bold;
+    color: #094;
+}
+
+.discrim b {
+    padding-left: 1em;
+}
+
+.layout.discrim > dl {
+    margin-block-start: 0em;
+    margin-block-end: 0em;
+}
+
+.ess p{
+    margin-block-start: 0em;
+    margin-block-end: 0em;
+    color: #888;
+}
+
+.section li a {
+    font-weight: bold;
+    color: #32a9ba;
+}
