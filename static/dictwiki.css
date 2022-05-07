@@ -1,0 +1,72 @@
+.medit.detail > ul > li {
+    display: inline-block;
+    margin-right: 8px;
+    font-weight: bold;
+    background-color: rgba(0, 0, 0, .15);
+}
+
+.medit.detail > ul > p {
+    display: inline-block;
+    font-size: 14px;
+    line-height: 28px;
+    font-weight: bold;
+    text-indent: -28px;
+    color: #189a9e;
+}
+
+.medit.example > div > .nav-tabs>li{
+    display: inline-block;
+    font-weight: bold;
+}
+
+.medit.example > div > .nav-tabs>li>a {
+    background: rgba(0, 0, 0, .06);
+    border-radius: 4px;
+    color: rgba(0, 0, 0, .65);
+    display: inline-block;
+    padding: 0 4px;
+    margin: 0;
+}
+
+.medit p, ul{
+    margin-block-start: 0em;
+    margin-block-end: 0em;
+}
+
+.medit > .con > .tab-content > .tab-pane{
+    border: dashed;
+    border-width: thin;
+}
+
+.medit p.one, p.title1{
+   font-weight: bold;
+}
+
+.medit p.two, p.title2{
+    /*color: rgba(0, 0, 0, .65);*/
+}
+
+.medit p.three, p.title3{
+    color: rgba(0, 0, 0, .65);
+}
+
+.medit h4{
+    margin-block-start: 0em;
+    margin-block-end: 0em;
+}
+
+h2.word-title {
+    margin-block-start: 0em;
+    margin-block-end: 0em;
+}
+
+.medit.cizu h4:hover + div.con, .medit.cizu div.con:hover, .medit.example .nav:hover + .tab-content, .medit.example .tab-content:hover, .medit.cizu p:hover + .child-ul, .medit.enen.cizu p:hover + p, .medit.enen.cizu p + p:hover, div.medit.hangyecidian div.con{
+    max-height:180000px;
+    transition-delay: 1.5s;
+}
+
+.medit.cizu div.con, .medit.example .tab-content, .medit.cizu .child-ul, .medit.enen.cizu p.title2{
+    max-height:0rem;
+    overflow: hidden;
+    transition-delay: 0.5s;
+}
