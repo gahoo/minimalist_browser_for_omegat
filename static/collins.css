@@ -1,6 +1,7 @@
-h2, h3, ol {
+.cB ol {
     margin-block-start: 4px;
     margin-block-end: 4px;
+    padding-inline-start: 20px;
 }
 
 h3.gramGrp {

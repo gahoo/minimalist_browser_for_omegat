@@ -1022,7 +1022,7 @@ a.expand_i{
     display:none
 }
 .example{
-    padding-left:45px;
+    /*padding-left:45px;*/
     margin-top:3px;
     margin-bottom:5px
 }

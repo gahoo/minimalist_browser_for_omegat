@@ -7,10 +7,7 @@
 
 .medit.detail > ul > p {
     display: inline-block;
-    font-size: 14px;
-    line-height: 28px;
     font-weight: bold;
-    text-indent: -28px;
     color: #189a9e;
 }
 
@@ -31,6 +28,10 @@
 .medit p, ul{
     margin-block-start: 0em;
     margin-block-end: 0em;
+}
+
+.medit ul{
+    padding-inline-start: 20px;
 }
 
 .medit > .con > .tab-content > .tab-pane{

@@ -491,10 +491,10 @@ h2,.h2{
     font-size:1.5rem;
 }
 h3,.h3{
-    font-size:1.3125rem
+    /*font-size:1.3125rem*/
 }
 h4,.h4{
-    font-size:1.1875rem
+    /*font-size:1.1875rem*/
 }
 h5,.h5{
     font-size:.875rem;
@@ -517,10 +517,11 @@ a{
 a:hover{
     text-decoration:none
 }
+/*
 ul,ol{
     margin:0 0 0px 0px;
     padding:0;
-    /*line-height:1.5em*/
+    line-height:1.5em
 }
 li{
     margin:0 0 4px
@@ -538,7 +539,7 @@ li ol{
 }
 dl{
     margin:0 0 30px;
-    /*line-height:1.5em*/
+    line-height:1.5em
 }
 dt{
     color:#111;
@@ -547,6 +548,7 @@ dt{
 dd{
     margin:0 0 20px
 }
+*/
 img{
     vertical-align:bottom;
     max-width:100%;
@@ -1291,6 +1293,7 @@ section[expanded] .ca_c{
     display: inline-flex;
     max-width: 95%
 }
+/*
 .xref:hover > .hax{
     max-height:1800px;
     transition-delay: 1s;
@@ -1299,6 +1302,7 @@ section[expanded] .ca_c{
     max-height:0;
     overflow: hidden;
 }
+*/
 .ha:hover,.han a:hover,.had a,.haf,.hax a:hover .haxa{
     text-decoration:underline
 }
@@ -2170,8 +2174,8 @@ span.db{
     display: none
 }
 .di-body>.idiom-block>.idiom-block>.di-title,.di-body>.idiom-block>.idiom-block>.di-info,.dsense_h,.ddef_block{
-    padding-left:10px;
-    padding-right:10px
+    padding-left:5px;
+    padding-right:5px
 }
 .di-body>.idiom-block>.idiom-block>.didiom-body{
     display:block;

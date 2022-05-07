@@ -157,3 +157,13 @@ a[href].new {
 div.jumbotron > div {
     margin-bottom: 0 !important;
 }
+.card-title:hover > div {
+    max-height:1800px;
+    transition-delay: 1.5s;
+}
+
+.card-title > div {
+    max-height:1rem;
+    overflow: hidden;
+    transition-delay: 0.5s;
+}
