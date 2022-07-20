@@ -98,17 +98,20 @@ class Browser(object):
         if isinstance(self.response, dict):
             debug_json = dict([(k, v) for k, v in self.response.items() if k != 'list' and v is not None and v != []])
             return render_template(self.template, raw_json = json.dumps(debug_json, indent=4, ensure_ascii=False), payload=self.payload, **self.response)
-        elif isinstance(self.response, list):
+        elif isinstance(self.response, list) and not self.xpath:
             return render_template(self.template, raw_json = json.dumps(self.response, indent=4, ensure_ascii=False), payload=self.payload, resp_list=self.response)
         else:
             return render_template(self.template, payload=self.payload, responses=self.response, service_name=self.name, url=self.url.format(**self.payload))
 
     def has_empty_response(self):
-        return "".join(self.response) == ""
+        if isinstance(self.response, list):
+            return self.response == []
+        else:
+            return "".join(self.response) == ""
 
 services = {
     'reverso-context': Browser('reverso', "https://context.reverso.net/bst-query-service", "reverso_context.html", {'source_lang': 'en', 'target_lang': 'zh', 'source_text': '', 'target_text': '', 'mode': '1', 'nrows': '50'}),
-    'wantwords': Browser('wantwords', "https://wantwords.net/ChineseRD/?q={q}&m={m}", "wantwords.html", {'q':'', 'm':'EnZh'}, method='GET'),
+    'wantwords': Browser('wantwords', "https://wantwords.net/ChineseRD/?q={query}&m={m}", "wantwords.html", {'query':'', 'm':'EnZh'}, method='GET'),
     'deepl': Browser('deepl', "https://www2.deepl.com/jsonrpc", "deepl.html",
         {"jsonrpc":"2.0","method": "LMT_handle_jobs","params":{"jobs":[{"kind":"default","sentences":[{"text":"","id":0,"prefix":""}],"raw_en_context_before":[],"raw_en_context_after":[],"preferred_num_beams":4,"quality":"fast"}],"lang":{"user_preferred_langs":["ZH","EN"],"source_lang_user_selected":"auto","target_lang":"ZH"},"priority":-1,"commonJobParams":{"browserType":129,"formality":None},"apps":{"usage":5},"timestamp":1646624556415},"id":48930046}
         ),
