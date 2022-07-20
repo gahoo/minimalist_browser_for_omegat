@@ -1,0 +1,61 @@
+.eg {
+    margin-block-start: 0em;
+    margin-block-end: 0em;    
+    color: #888888;
+    padding-left: 2em;
+}
+
+.abc_b > p{
+    margin-block-start: 0em;
+    margin-block-end: 0em;    
+}
+
+.abc_b > a > p{
+    margin-block-start: 0em;
+    margin-block-end: 0em;    
+}
+
+.abc_c > p{
+    margin-block-start: 0em;
+    margin-block-end: 0em;    
+}
+
+p.class{
+    margin-block-start: 0em;
+    margin-block-end: 0em;
+    background-color: lightgreen;
+}
+
+p.explanation > a > br{
+    display: none;
+}
+
+p.explanation > br{
+    display: none;
+}
+
+p.class > a > br{
+    display: none;
+}
+
+p.class > br{
+    display: none;
+}
+
+.explanation:hover + span + p.eg{
+    max-height:1800px;
+    transition-delay: 1s;
+}
+.explanation + span + p.eg{
+    max-height:0;
+    overflow: hidden;
+}
+
+.explanation + span{
+    display:none
+}
+
+.abc_c > p {
+    height:4px;
+    background-color: lightgreen
+}

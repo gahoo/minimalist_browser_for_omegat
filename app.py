@@ -92,6 +92,7 @@ class Browser(object):
 
         for xpath, regex in self.link_conversion.items():
             a_tags = node.xpath(xpath)
+            a_tags = [a for a in a_tags if a.get('href')]
             list(map(replace_a_href, a_tags))
 
     def render(self):
@@ -123,7 +124,8 @@ services = {
     'termcodex': Browser('termcodex', 'https://www.termcodex.com/wiki/{query}', 'dictionary.html', {'query': '', 'extract': 'html'}, xpath=['//div[contains(@class, "jumbotron")]', '//span[contains(@class,"badge") and contains("词典 数学 计算机 统计学", text())]/parent::*/parent::*/parent::*'], exclude_xpath=[], seperator = "<hr>", link_conversion={'//a[@class="new"]': 'title=(\w+)', '//p/a': '/wiki/(.*)$', '//b/a': '/wiki/(.*)$'}),
     'dict.cn': Browser('dict.cn', 'https://dict.cn/{query}', 'dictionary.html', {'query': '', 'extract': 'html'}, xpath=['//div[contains(@class, "basic")]/ul', '//div[@class="layout detail"]/preceding-sibling::h3|//div[@class="layout detail"]', '//div[contains(@class, "ess")]/preceding-sibling::h3|//div[contains(@class, "ess")]', '//div[contains(@class, "discrim")]/preceding-sibling::h3[1]|//div[contains(@class, "discrim")]', '//div[contains(@class, "sort")]/preceding-sibling::h3|//div[contains(@class, "sort")]', '//div[contains(@class, "unfind")]/preceding-sibling::h3|//div[contains(@class, "unfind")]'], exclude_xpath=['//script/parent::li'], seperator = "", link_conversion={'//div[contains(@class, "unfind")]/ul/li/a':'^/(.*)$'}),
     'dictwiki': Browser('dictwiki', 'https://dictwiki.net/zh/{query}', 'dictionary.html', {'query': '', 'extract': 'html'}, xpath=['//h2[@class="word-title"]', '//div[@class="medit detail" or @class="medit example" or @class="medit enen cizu" or @class="medit ee cizu tongyibianxi" or @class="medit enen cizu hangyecidian"]'], exclude_xpath=['//script', '//ins[@class="adsbygoogle"]'], seperator = "", link_conversion={}),
-    'yiym': Browser('yiym', 'http://yiym.com/{query}', 'dictionary.html', {'query': '', 'extract': 'html'}, xpath=['//div[contains(@class, "entry")]'], exclude_xpath=['//div[contains(@class, "entry")]/div[contains(@class, "postmetadata")]'], seperator = "", link_conversion={}),
+    'yiym': Browser('yiym', 'http://yiym.com/{query}', 'dictionary.html', {'query': '', 'extract': 'html'}, xpath=['//div[contains(@class, "entry")]'], exclude_xpath=['//div[contains(@class, "entry")]/div[contains(@class, "postmetadata")]'], seperator = "", link_conversion={'//p[@class="slang_reference"]/a':'odict.net/(.*)/'}),
+    'odict': Browser('odict', 'http://odict.net/{query}', 'dictionary.html', {'query': '', 'extract': 'html'}, xpath=['//div[@class="abc_b"]', '//div[@class="abc_c"]'], exclude_xpath=['//script', '//ins', '//div[@class="abc_c"]/br[1]'], seperator = "", link_conversion={'//div[@class="abc_b"]//a':'/(.*)/'}),
 }
 
 
