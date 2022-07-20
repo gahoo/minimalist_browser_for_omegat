@@ -32,8 +32,8 @@ ol.words > li > .description{
 <body>
 	<div id='navi'>
 		<button onclick="history.back()">🔙</button>
-		<input id='query' type="text" value="{{ payload.q }}">
-		<input id='go' type=button onClick="parent.location='?m={{ payload.m }}&q=' + document.getElementById('query').value" value='GO'>
+		<input id='query' type="text" value="{{ payload.query }}">
+		<input id='go' type=button onClick="parent.location='?m={{ payload.m }}&query=' + document.getElementById('query').value" value='GO'>
 		<input id='refresh' type=button onClick="parent.location = location.href + '&refresh=true'" value='Refresh'>
 	</div>
         <div id='filter_'>
@@ -59,7 +59,7 @@ ol.words > li > .description{
                  hide
                 {%- endif -%}
                 " style="background-color: #005aff{{item.c}};">
-                <a class="crossref" href="?m=ZhZh&q={{ item.w }}">{{ item.w }}</a>
+                <a class="crossref" href="?m=ZhZh&query={{ item.w }}">{{ item.w }}</a>
                 <div class="description">{{item.d}}</div>
 	</li>
 	{% endfor %}
