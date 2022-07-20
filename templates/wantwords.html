@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body {font-size: 85%;}
+button, input {font-size: 65%;}
+.entry {border: solid 1px; border-color: lightgrey; padding: 0.2px;}
+em   {font-weight: bold; color: red; background-color: lemonchiffon;}
+#debug { display: none;}
+#show_debug:checked + #debug { display: block;}
+p { margin-block-start: 0.5em; margin-block-end: 0.5em;}
+.hide {display: none}
+.words{
+    display:inline-flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    width: 90%
+}
+ol > li {display: inline-block; padding: 1px; margin: 4px}
+a.crossref {color: grey}
+
+ol.words > li:hover > .description{
+    display:block
+}
+ol.words > li > .description{
+    display: none;
+}
+
+</style>
+<script src="/static/jquery.min.js"></script>
+</head>
+<body>
+	<div id='navi'>
+		<button onclick="history.back()">🔙</button>
+		<input id='query' type="text" value="{{ payload.q }}">
+		<input id='go' type=button onClick="parent.location='?m={{ payload.m }}&q=' + document.getElementById('query').value" value='GO'>
+		<input id='refresh' type=button onClick="parent.location = location.href + '&refresh=true'" value='Refresh'>
+	</div>
+        <div id='filter_'>
+                {% set data = namespace(P=[]) %}
+	        {% for item in resp_list %}
+                    {% set data.P = data.P + item.P %}
+	        {% endfor %}
+	        {% for p in data.P |unique %}
+                <input type="checkbox" id="{{p}}"><label>{{p}}</label>
+	        {% endfor %}
+                <input type="checkbox" id="其他" checked><label>其他</label>
+        </div>
+	<div id='entry_list'>
+	<ol class="words">
+	{% for item in resp_list %}
+	<li class="
+		{%- for p in item.P -%}
+                {{p + " "}}
+		{%- endfor -%}
+                {%- if item.P |length == 0 -%}
+                其他
+                {%- else %}
+                 hide
+                {%- endif -%}
+                " style="background-color: #005aff{{item.c}};">
+                <a class="crossref" href="?m=ZhZh&q={{ item.w }}">{{ item.w }}</a>
+                <div class="description">{{item.d}}</div>
+	</li>
+	{% endfor %}
+	</ol>
+	</div>
+	<div id='examples'>
+	<label for="show_debug">Show JSON for debugging</label>
+	<input type="checkbox" id="show_debug" />
+	<div id='debug'>
+		<pre>{{ raw_json }}</pre>
+	</div>
+</body>
+<script>
+const word_types = ['代', '副', '动', '名', '形', '无', '成语', '拟声', '其他']
+
+word_types.forEach(function(wt){
+    $('#' + wt).change(function(){
+        if($(this).is(":checked")) {
+            $('.' + wt).removeClass('hide');
+        } else {
+            $('.' + wt).addClass('hide');
+        }
+    });
+})
+
+</script>
+</html>

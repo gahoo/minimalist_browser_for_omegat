@@ -16,7 +16,7 @@ from aiohttp_client_cache import CachedSession, SQLiteBackend
 app = Flask(__name__)
 
 class Browser(object):
-    def __init__(self, name, url, template, default={}, headers={}, xpath=[], exclude_xpath=[], seperator="", link_conversion={}):
+    def __init__(self, name, url, template, default={}, headers={}, xpath=[], exclude_xpath=[], seperator="", link_conversion={}, method="POST"):
         self.name = name
         self.url = url
         if headers:
@@ -35,6 +35,7 @@ class Browser(object):
         self.seperator = seperator
         self.link_conversion = link_conversion
         self.response = None
+        self.method = method
 
     async def query(self, session, **kwargs):
         if 'refresh' in kwargs and kwargs.pop('refresh') == 'true':
@@ -45,15 +46,18 @@ class Browser(object):
         for k, v in kwargs.items():
             self.payload[k] = v
         if self.xpath:
-            self.response = await self.get(session)
+            self.response = await self.get_html(session)
         else:
-            self.response = await self.post(session)
+            self.response = await self.get_json(session, self.method)
 
-    async def post(self, session):
-        r = await session.request(method="POST",url=self.url, data=json.dumps(self.payload), headers=self.headers)
+    async def get_json(self, session, method="POST"):
+        if method == "GET":
+            r = await session.request(method=method, url=self.url.format(**self.payload), headers=self.headers)
+        elif method == "POST":
+            r = await session.request(method=method, url=self.url, data=json.dumps(self.payload), headers=self.headers)
         return await r.json()
 
-    async def get(self, session):
+    async def get_html(self, session):
         def extract_html(xpath):
             selected = doc.xpath(xpath)
             if self.link_conversion:
@@ -94,6 +98,8 @@ class Browser(object):
         if isinstance(self.response, dict):
             debug_json = dict([(k, v) for k, v in self.response.items() if k != 'list' and v is not None and v != []])
             return render_template(self.template, raw_json = json.dumps(debug_json, indent=4, ensure_ascii=False), payload=self.payload, **self.response)
+        elif isinstance(self.response, list):
+            return render_template(self.template, raw_json = json.dumps(self.response, indent=4, ensure_ascii=False), payload=self.payload, resp_list=self.response)
         else:
             return render_template(self.template, payload=self.payload, responses=self.response, service_name=self.name, url=self.url.format(**self.payload))
 
@@ -102,6 +108,7 @@ class Browser(object):
 
 services = {
     'reverso-context': Browser('reverso', "https://context.reverso.net/bst-query-service", "reverso_context.html", {'source_lang': 'en', 'target_lang': 'zh', 'source_text': '', 'target_text': '', 'mode': '1', 'nrows': '50'}),
+    'wantwords': Browser('wantwords', "https://wantwords.net/ChineseRD/?q={q}&m={m}", "wantwords.html", {'q':'', 'm':'EnZh'}, method='GET'),
     'deepl': Browser('deepl', "https://www2.deepl.com/jsonrpc", "deepl.html",
         {"jsonrpc":"2.0","method": "LMT_handle_jobs","params":{"jobs":[{"kind":"default","sentences":[{"text":"","id":0,"prefix":""}],"raw_en_context_before":[],"raw_en_context_after":[],"preferred_num_beams":4,"quality":"fast"}],"lang":{"user_preferred_langs":["ZH","EN"],"source_lang_user_selected":"auto","target_lang":"ZH"},"priority":-1,"commonJobParams":{"browserType":129,"formality":None},"apps":{"usage":5},"timestamp":1646624556415},"id":48930046}
         ),
