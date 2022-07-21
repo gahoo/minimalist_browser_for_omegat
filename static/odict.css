@@ -59,3 +59,19 @@ p.class > br{
     height:4px;
     background-color: lightgreen
 }
+
+.abc_c > br {
+    display:none
+}
+
+.abc_c > span + br {
+    display:block
+}
+
+.abc_c > strong + br {
+    display:block
+}
+
+.abc_c > span {
+    margin-left: 12px
+}
