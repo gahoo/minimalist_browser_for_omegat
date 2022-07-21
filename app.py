@@ -87,10 +87,19 @@ class Browser(object):
         def replace_a_href(a_tag):
             has_found_query = re.search(regex, a_tag.get('href'))
             if has_found_query:
-                query = has_found_query.group(1)
-                a_tag.set('href', '?query={query}'.format(query=query))
+                if has_found_query.groupdict():
+                    a_tag.set('href', target.format(**has_found_query.groupdict()))
+                else:
+                    query = has_found_query.group(1)
+                    a_tag.set('href', target.format(query=query))
 
-        for xpath, regex in self.link_conversion.items():
+        for xpath, conversion in self.link_conversion.items():
+            if isinstance(conversion, dict):
+                regex = conversion.get('regex')
+                target = conversion.get('target')
+            elif isinstance(conversion, str):
+                regex = conversion
+                target = '?query={query}'
             a_tags = node.xpath(xpath)
             a_tags = [a for a in a_tags if a.get('href')]
             list(map(replace_a_href, a_tags))
@@ -105,7 +114,7 @@ class Browser(object):
             return render_template(self.template, payload=self.payload, responses=self.response, service_name=self.name, url=self.url.format(**self.payload))
 
     def has_empty_response(self):
-        return len(self.response) == 0
+        return len(self.response) == 0 or "".join(self.response) == ""
 
 services = {
     'reverso-context': Browser('reverso', "https://context.reverso.net/bst-query-service", "reverso_context.html", {'source_lang': 'en', 'target_lang': 'zh', 'source_text': '', 'target_text': '', 'mode': '1', 'nrows': '50'}),
@@ -121,7 +130,8 @@ services = {
     'termcodex': Browser('termcodex', 'https://www.termcodex.com/wiki/{query}', 'dictionary.html', {'query': '', 'extract': 'html'}, xpath=['//div[contains(@class, "jumbotron")]', '//span[contains(@class,"badge") and contains("词典 数学 计算机 统计学 社会学 新闻传播学", text())]/parent::*/parent::*/parent::*'], exclude_xpath=[], seperator = "<hr>", link_conversion={'//a[@class="new"]': 'title=(\w+)', '//p/a': '/wiki/(.*)$', '//b/a': '/wiki/(.*)$'}),
     'dict.cn': Browser('dict.cn', 'https://dict.cn/{query}', 'dictionary.html', {'query': '', 'extract': 'html'}, xpath=['//div[contains(@class, "basic")]/ul', '//div[@class="layout detail"]/preceding-sibling::h3|//div[@class="layout detail"]', '//div[contains(@class, "ess")]/preceding-sibling::h3|//div[contains(@class, "ess")]', '//div[contains(@class, "discrim")]/preceding-sibling::h3[1]|//div[contains(@class, "discrim")]', '//div[contains(@class, "sort")]/preceding-sibling::h3|//div[contains(@class, "sort")]', '//div[contains(@class, "unfind")]/preceding-sibling::h3|//div[contains(@class, "unfind")]'], exclude_xpath=['//script/parent::li'], seperator = "", link_conversion={'//div[contains(@class, "unfind")]/ul/li/a':'^/(.*)$'}),
     'dictwiki': Browser('dictwiki', 'https://dictwiki.net/zh/{query}', 'dictionary.html', {'query': '', 'extract': 'html'}, xpath=['//h2[@class="word-title"]', '//div[@class="medit detail" or @class="medit example" or @class="medit enen cizu" or @class="medit ee cizu tongyibianxi" or @class="medit enen cizu hangyecidian"]'], exclude_xpath=['//script', '//ins[@class="adsbygoogle"]'], seperator = "", link_conversion={}),
-    'yiym': Browser('yiym', 'http://yiym.com/{query}', 'dictionary.html', {'query': '', 'extract': 'html'}, xpath=['//div[contains(@class, "entry")]'], exclude_xpath=['//div[contains(@class, "entry")]/div[contains(@class, "postmetadata")]'], seperator = "", link_conversion={'//p[@class="slang_reference"]/a':'odict.net/(.*)/'}),
+    'yiym': Browser('yiym', 'http://yiym.com/{query}', 'yiym.html', {'query': '', 'extract': 'html'}, xpath=['//div[contains(@class, "entry")]'], exclude_xpath=['//div[contains(@class, "entry")]/div[contains(@class, "postmetadata")]'], seperator = "", link_conversion={'//p[@class="slang_reference"]/a':'odict.net/(.*)/'}),
+    'yiym_search': Browser('yiym_search', 'http://yiym.com/page/{page}?s={query}', 'dictionary.html', {'query': '', 'page':1, 'extract': 'html'}, xpath=['//h3[@class="title"]', '//div[@id="pagenavi"]'], exclude_xpath=[], seperator = "", link_conversion={'//h3[@class="title"]/a':{'regex':'www.yiym.com/(.*)', 'target':'/yiym/?query={query}'}, '//div[@id="pagenavi"]/a':{'regex':'page/(?P<page>\d+)\?s=(?P<query>.*)', 'target':'?query={query}&page={page}'}}),
     'odict': Browser('odict', 'http://odict.net/{query}', 'dictionary.html', {'query': '', 'extract': 'html'}, xpath=['//div[@class="abc_b"]', '//div[@class="abc_c"]'], exclude_xpath=['//script', '//ins', '//div[@class="abc_c"]/br[1]'], seperator = "", link_conversion={'//div[@class="abc_b"]//a':'/(.*)/'}),
 }
 
