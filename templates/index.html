@@ -9,13 +9,15 @@ em   {font-weight: bold; color: red; background-color: lemonchiffon;}
 #navi { display: none;}
 #debug { display: none;}
 #show_debug:checked + #debug { display: block;}
-hr {margin-top: 2px;margin-bottom: 2px;}
-#go, #refresh { display:none }
 .navitab, #query_top {display:inline}
+hr {margin-top: 2px;margin-bottom: 2px;}
+/*
+#go, #refresh { display:none }
 #query_top:focus + #go { display:inline }
 #query_top:focus + #go + #refresh { display:inline }
 #go:hover {display:inline}
 #refresh:hover {display:inline}
+*/
 </style>
 </head>
 <body>
@@ -44,4 +46,19 @@ hr {margin-top: 2px;margin-bottom: 2px;}
 <style>
 h1, h2, h3, h4 {margin-top: 2px;margin-bottom: 2px;}
 </style>
+<script>
+// Get the input field
+var input = document.getElementById("query_top");
+
+// Execute a function when the user presses a key on the keyboard
+input.addEventListener("keypress", function(event) {
+  // If the user presses the "Enter" key on the keyboard
+  if (event.key === "Enter") {
+    // Cancel the default action, if needed
+    event.preventDefault();
+    // Trigger the button element with a click
+    document.getElementById("go").click();
+  }
+});
+</script>
 </html>
