@@ -1,0 +1,13 @@
+h3.title {
+  margin-block-start: 0;
+  margin-block-end: 0;
+}
+
+h3.title > a {
+  color: grey;
+  text-decoration: none
+}
+
+#pagenavi > a {
+  color: grey
+}

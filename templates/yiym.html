@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body {font-size: 85%;} 
+button, input {font-size: 65%;}
+em   {font-weight: bold; color: red; background-color: lemonchiffon;}
+</style>
+<link rel="stylesheet" href="/static/{{ service_name }}.css">
+</head>
+<body>
+	<div id='navi'>
+		<button onclick="history.back()">🔙</button>
+		<input id='query' type="text" value="{{ payload.query }}">
+		<input id='go' type=button onClick="parent.location='?query=' + document.getElementById('query').value" value='GO'>
+		<input id='refresh' type=button onClick="parent.location='?query={{ payload.query }}&refresh=true'" value='Refresh'>
+	</div>
+	<div>
+	{% for item in responses %}
+	{{ item|safe }}
+	{% endfor %}
+	</div>
+	{% if url is defined %}
+	<p><a href="{{ url }}">{{ url }}</a></p>
+	{% endif %}
+</body>
+{% if responses[0] == "" %}
+<script>
+	window.location.replace("http://" + location.host + '/yiym_search/?query={{payload.query}}');
+</script>
+{% endif %}
+<script>
+// Get the input field
+var input = document.getElementById("query");
+
+// Execute a function when the user presses a key on the keyboard
+input.addEventListener("keypress", function(event) {
+  // If the user presses the "Enter" key on the keyboard
+  if (event.key === "Enter") {
+    // Cancel the default action, if needed
+    event.preventDefault();
+    // Trigger the button element with a click
+    document.getElementById("go").click();
+  }
+});
+</script>
+</html>
