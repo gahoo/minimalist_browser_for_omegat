@@ -105,10 +105,7 @@ class Browser(object):
             return render_template(self.template, payload=self.payload, responses=self.response, service_name=self.name, url=self.url.format(**self.payload))
 
     def has_empty_response(self):
-        if isinstance(self.response, list):
-            return self.response == []
-        else:
-            return "".join(self.response) == ""
+        return len(self.response) == 0
 
 services = {
     'reverso-context': Browser('reverso', "https://context.reverso.net/bst-query-service", "reverso_context.html", {'source_lang': 'en', 'target_lang': 'zh', 'source_text': '', 'target_text': '', 'mode': '1', 'nrows': '50'}),
