@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body {font-size: 85%;} 
+button, input {font-size: 65%;}
+em   {font-weight: bold; color: red; background-color: lemonchiffon;}
+</style>
+<link rel="stylesheet" href="/static/{{ service_name }}.css">
+</head>
+<body>
+	<div id='navi'>
+		<form>
+		<button onclick="history.back()">🔙</button>
+		<input id='query' name="query" type="text" value="{{ payload.query }}">
+		<input type="submit" value="GO">
+		<input type="checkbox" name="refresh" value="true"><label>refresh</label>
+		<input type="checkbox" name="match" value="smart"><label>fuzzy</label>
+		<input type="radio" name="group" value="1"><label>术语</label>
+		<input type="radio" name="group" value="2"><label>词典</label>
+		</form>
+	</div>
+	<div class="naer_result">
+	{% for item in responses %}
+	{{ item|safe }}
+	{% endfor %}
+	</div>
+	{% if url is defined %}
+	<p><a href="{{ url }}">{{ url }}</a></p>
+	{% endif %}
+</body>
+</html>

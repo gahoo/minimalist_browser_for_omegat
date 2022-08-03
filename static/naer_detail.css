@@ -1,0 +1,58 @@
+ul.category_list > li {
+  display: inline-flex;
+  margin: 8px;
+  background-color: whitesmoke;
+}
+
+#assort > ul > li {
+  display: inline-flex;
+}
+
+#assort > ul {
+  margin: 0px;
+  padding: 0;
+}
+
+ul.category_list {
+  margin: 0px;
+  padding: 0;
+}
+
+#related_decommends > ul {
+  margin: 0px;
+  padding: 0;
+}
+
+tr > th {
+  margin: 12px
+}
+
+tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+hr.naer_hr {
+  margin: 0;
+  border: 1px dashed
+}
+
+div#explanation > h4 {
+  margin: 0;
+}
+
+div#explanation > div > h4 {
+  margin: 0;
+}
+
+div#explanation > div > p {
+  margin: 0;
+  font-size: 1.2em;
+}
+
+div#explanation > h5 {
+  margin: 0;
+}
+
+h4.cttitle {
+  font-size: 2em;
+}
