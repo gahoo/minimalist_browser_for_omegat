@@ -85,13 +85,22 @@ class Browser(object):
 
     def convert_links(self, node):
         def replace_a_href(a_tag):
-            has_found_query = re.search(regex, a_tag.get('href'))
-            if has_found_query:
-                if has_found_query.groupdict():
-                    a_tag.set('href', target.format(**has_found_query.groupdict()))
-                else:
-                    query = has_found_query.group(1)
-                    a_tag.set('href', target.format(query=query))
+            if isinstance(regex, list):
+                has_found_query = list(map(lambda x:re.search(x, a_tag.get('href')), regex))
+                query = dict()
+                [query.update(m.groupdict()) for m in has_found_query if m]
+                query = ["{k}={v}".format(k=k,v=v) for k, v in query.items()]
+                query_string = "&".join(query)
+                a_tag.set('href', target.format(query_string=query_string))
+            elif isinstance(regex, str):
+                has_found_query = re.search(regex, a_tag.get('href'))
+                if has_found_query:
+                    if has_found_query.groupdict():
+                        query = {k:v if v is not None else '' for k, v in has_found_query.groupdict().items()}
+                        a_tag.set('href', target.format(**query))
+                    else:
+                        query = has_found_query.group(1)
+                        a_tag.set('href', target.format(query=query))
 
         for xpath, conversion in self.link_conversion.items():
             if isinstance(conversion, dict):
@@ -133,7 +142,7 @@ services = {
     'yiym': Browser('yiym', 'http://yiym.com/{query}', 'yiym.html', {'query': '', 'extract': 'html'}, xpath=['//div[contains(@class, "entry")]'], exclude_xpath=['//div[contains(@class, "entry")]/div[contains(@class, "postmetadata")]'], seperator = "", link_conversion={'//p[@class="slang_reference"]/a':'odict.net/(.*)/'}),
     'yiym_search': Browser('yiym_search', 'http://yiym.com/page/{page}?s={query}', 'dictionary.html', {'query': '', 'page':1, 'extract': 'html'}, xpath=['//h3[@class="title"]', '//div[@id="pagenavi"]'], exclude_xpath=[], seperator = "", link_conversion={'//h3[@class="title"]/a':{'regex':'www.yiym.com/(.*)', 'target':'/yiym/?query={query}'}, '//div[@id="pagenavi"]/a':{'regex':'page/(?P<page>\d+)\?s=(?P<query>.*)', 'target':'?query={query}&page={page}'}}),
     'odict': Browser('odict', 'http://odict.net/{query}', 'dictionary.html', {'query': '', 'extract': 'html'}, xpath=['//div[@class="abc_b"]', '//div[@class="abc_c"]'], exclude_xpath=['//script', '//ins', '//div[@class="abc_c"]/br[1]'], seperator = "", link_conversion={'//div[@class="abc_b"]//a':'/(.*)/'}),
-    'naer_search': Browser('naer_search', 'https://terms.naer.edu.tw/search/?q={query}&field=ti&op=AND&match={match}&q=&field=ti&op=AND&order={order}&num={num}&show=&page={page}&group={group}&q=noun:"{category}"&field=&op=AND&heading=#result', 'naer.html', {'query': '', 'match':'full', 'category':'', 'order':'', 'group':'', 'num':50, 'page':1, 'extract': 'html'}, xpath=['//div[@class="result_keyword"]/em', '//ul[@class="category_list"]', '//table[@class="resultlisttable"]/tr[@class="dash"]', '(//li[@class="pagination"])[1]'], exclude_xpath=['//td[@class="sourceW"]/br', '//th[@class="cboxW"]', '//i[@class="icon-info-sign"]'], seperator = "<br>", link_conversion={'//li[@class="pagination"]/ul/li/a':{'regex':'q=(?P<query>[\w ]+)?&.*q=noun:"(?P<category>.*)".*&group=(?P<group>\d+).*&num=(?P<num>\d+).*&page=(?P<page>\d+)', 'target': '/naer_search/?query={query}&category={category}&group={group}&num={num}&page={page}'}, '//ul[@class="category_list"]/li/a':{'regex':'q=(?P<query>[\w ]+)?&.*q=noun:%22(?P<category>.*)%22', 'target': '/naer_search/?query={query}&category={category}'}, '//td[@class="ennameW" or @class="zhtwnameW" or @class="sourceW"]/a':{'regex':'/detail/(?P<query>\d+)/\?index=(?P<index>\d+)', 'target': '/naer_detail/?query={query}&index={index}'}}),
+    'naer_search': Browser('naer_search', 'https://terms.naer.edu.tw/search/?q={query}&field=ti&op=AND&match={match}&q=&field=ti&op=AND&order={order}&num={num}&show=&page={page}&group={group}&q=noun:"{category}"&field=&op=AND&heading=#result', 'naer.html', {'query': '', 'match':'full', 'category':'', 'order':'', 'group':'', 'num':50, 'page':1, 'extract': 'html'}, xpath=['//div[@class="result_keyword"]/em', '//ul[@class="category_list"]', '//table[@class="resultlisttable"]/tr[@class="dash"]', '(//li[@class="pagination"])[1]'], exclude_xpath=['//td[@class="sourceW"]/br', '//th[@class="cboxW"]', '//i[@class="icon-info-sign"]'], seperator = "<br>", link_conversion={'./ul/li/a':{'regex':['q=(?P<query>[\w ]+)?&', 'q=noun:"(?P<category>.*)"', 'group=(?P<group>\d+)', 'num=(?P<num>\d+)', 'match=(?P<match>\w+)', 'page=(?P<page>\d+)'], 'target': '/naer_search/?{query_string}'}, './li/a':{'regex':['q=(?P<query>[\w ]+)?&', 'q=noun:%22(?P<category>.*)%22', 'match=(?P<match>\w+)'], 'target': '/naer_search/?{query_string}'}, './/td[@class="ennameW" or @class="zhtwnameW" or @class="sourceW"]/a':{'regex':'/detail/(?P<query>\d+)/\?index=(?P<index>\d+)', 'target': '/naer_detail/?query={query}&index={index}'}}),
     'naer_detail': Browser('naer_detail', 'https://terms.naer.edu.tw/detail/{query}/?index={index}', 'dictionary.html', {'query': '', 'index': 1, 'extract': 'html'}, xpath=['//div[@id="explanation"]', '//div[@class="searchresultstab-content"]', '//table[@class="resultlisttable"]'], exclude_xpath=['//td[@class="sourceW"]/br'], seperator = '<hr class="naer_hr">', link_conversion={'//th[@class="ennameW" or @class="zhtwnameW"]/a':{'regex':'/detail/(?P<query>\d+)/', 'target': '/naer_detail/?query={query}'}, '//ul[@class="category_list"]/li/a':{'regex':'/detail/(?P<query>\d+)/', 'target': '/naer_detail/?query={query}'}}),
 }
 
