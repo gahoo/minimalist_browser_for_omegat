@@ -18,6 +18,10 @@ li.pagination > ul {
   padding: 2px;
 }
 
+li.pagination {
+  display: inline-flex;
+}
+
 ul.category_list {
   margin: 0px;
   padding: 0;
