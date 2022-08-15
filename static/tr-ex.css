@@ -1,0 +1,63 @@
+.stc-t {
+    color: grey
+
+}
+
+.translations {
+    padding: 0 !important;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.translation {
+    background-color: #0053f9;
+    text-decoration: underline;
+    color: #fff;
+    border-color: #0053f9;
+    font-size: .9rem;
+    margin: 0.2rem;
+    align-items: center;
+    padding: 0.2rem 0.3rem 0.5rem;
+    border-radius: 5rem;
+    align-content: center;
+}
+
+.translation-wrapper {
+    display: flex;
+}
+
+.synonyms {
+    display: none;
+}
+
+.translation-wrapper:hover > .synonyms {
+    display: block
+}
+
+a.text {
+    padding: 5px;
+}
+/*
+hr.tr-ex_hr {
+    margin-block-start: 0px;
+    margin-block-end: 0px;
+    border: 1px dotted lightblue;
+}
+*/
+a.ctx-link {
+    color: black
+}
+
+.doc-group:hover{
+    max-height:1800px;
+    transition-delay: 1s;
+}
+.doc-group{
+    max-height:50px;
+    overflow: hidden;
+}
+
+.ctx{
+    margin-block-start: 5px;
+}
