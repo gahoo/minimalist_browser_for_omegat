@@ -39,11 +39,11 @@ p { margin-block-start: 0.5em; margin-block-end: 0.5em;}
 	{% for item in list %}
 		<p class='example'>{{ item.s_text|safe }}</br>{{ item.t_text|safe }}</p>
 	{% endfor %}
-	<div>
+	</div>
+	<div class="debug">
 	<label for="show_debug">Show JSON for debugging</label>
 	<input type="checkbox" id="show_debug" />
-	<div id='debug'>
-		<pre>{{ raw_json }}</pre>
+		<pre id='debug'>{{ raw_json }}</pre>
 	</div>
 </body>
 <script>
