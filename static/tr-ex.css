@@ -27,6 +27,11 @@
     margin: 0.2rem;
     border: 1px solid grey;
 }
+
+.query-part {
+    display: flex;
+}
+
 .translation-wrapper {
     display: flex;
 }
