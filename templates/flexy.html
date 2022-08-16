@@ -36,7 +36,7 @@ hr {margin-top: 2px;margin-bottom: 2px;}
 	<div class="responses" style="display:flex; flex-wrap:wrap">
 		{% for k, v in responses.items() %}
 		{% if not services[k].has_empty_response() %}
-		<div class="response-wrapper" style="min-width: 25vw; max-width: 50vw; border: solid 1px grey;">
+		<div class="response-wrapper" style="min-width: 25vw; max-width: 48vw; border: solid 1px grey;">
 		<h2 id="{{ k }}" style="background-color: lightgrey"><a href="#">{{ k }}</a></h2>
 		{{ v|safe }}
 		</div>
