@@ -16,3 +16,7 @@ h3.gramGrp {
 .h2_entry, .h2_entry + * {
   display: inline;
 }
+
+span.pos {
+    background-color: pink;
+}
