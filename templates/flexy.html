@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+/*body {font-size: 65%;}*/
+button, input {font-size: 65%;}
+.entry {border: solid 1px; border-color: lightgrey; padding: 0.2px;}
+em   {font-weight: bold; color: red; background-color: lemonchiffon;}
+#navi { display: none;}
+#debug { display: none;}
+#show_debug:checked + #debug { display: block;}
+.navitab, #query_top {display:inline}
+hr {margin-top: 2px;margin-bottom: 2px;}
+/*
+#go, #refresh { display:none }
+#query_top:focus + #go { display:inline }
+#query_top:focus + #go + #refresh { display:inline }
+#go:hover {display:inline}
+#refresh:hover {display:inline}
+*/
+</style>
+</head>
+<body>
+	<div>
+	<div class="navitab">
+	<button onclick="history.back()">🔙</button>
+	{% for k in responses.keys() %}
+	{% if not services[k].has_empty_response() %}
+	<a href="#{{ k }}" style="border: solid; margin: 1px; padding: 1px; font-size: 1.2em">{{ k }}</a>
+	{% endif %}
+	{% endfor %}
+	<input id='query_top' type="text" value="{{ payload.query }}" size=12>
+	<input id='go' type=button onClick="parent.location='?query=' + document.getElementById('query_top').value" value='GO'>
+	<input id='refresh' type=button onClick="parent.location='?query={{ payload.query }}&refresh=true'" value='Refresh'>
+	</div>
+	<div class="responses" style="display:flex; flex-wrap:wrap">
+		{% for k, v in responses.items() %}
+		{% if not services[k].has_empty_response() %}
+		<div class="response-wrapper" style="min-width: 25vw; max-width: 50vw; border: solid 1px grey;">
+		<h2 id="{{ k }}" style="background-color: lightgrey"><a href="#">{{ k }}</a></h2>
+		{{ v|safe }}
+		</div>
+		{% endif %}
+		{% endfor %}
+	</div>
+	</div>
+	<a href="#" style="position:fixed; top:5px; right:20px">⬆️</a>
+</body>
+<style>
+h1, h2, h3, h4 {margin-top: 2px;margin-bottom: 2px;}
+</style>
+<script>
+// Get the input field
+var input = document.getElementById("query_top");
+
+// Execute a function when the user presses a key on the keyboard
+input.addEventListener("keypress", function(event) {
+  // If the user presses the "Enter" key on the keyboard
+  if (event.key === "Enter") {
+    // Cancel the default action, if needed
+    event.preventDefault();
+    // Trigger the button element with a click
+    document.getElementById("go").click();
+  }
+});
+</script>
+</html>
