@@ -9,7 +9,7 @@
     flex-wrap: wrap;
     align-items: center;
 }
-
+/*
 .translation {
     background-color: #0053f9;
     text-decoration: underline;
@@ -22,7 +22,11 @@
     border-radius: 5rem;
     align-content: center;
 }
-
+*/
+.translation{
+    margin: 0.2rem;
+    border: 1px solid grey;
+}
 .translation-wrapper {
     display: flex;
 }
@@ -48,7 +52,7 @@ hr.tr-ex_hr {
 a.ctx-link {
     color: black
 }
-
+/*
 .doc-group:hover{
     max-height:1800px;
     transition-delay: 1s;
@@ -57,7 +61,7 @@ a.ctx-link {
     max-height:50px;
     overflow: hidden;
 }
-
+*/
 .ctx{
     margin-block-start: 5px;
 }
