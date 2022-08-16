@@ -7,3 +7,12 @@
 h3.gramGrp {
     background-color: pink;
 }
+
+.h2_entry, .h3_entry {
+  margin-block-start: 0;
+  margin-block-end: 0;
+}
+
+.h2_entry, .h2_entry + * {
+  display: inline;
+}
