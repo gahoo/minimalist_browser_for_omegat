@@ -17,6 +17,10 @@ h3.gramGrp {
   display: inline;
 }
 
-span.pos {
+.hom > span.pos {
+    background-color: pink;
+}
+
+.gramGrp > span.pos {
     background-color: pink;
 }
