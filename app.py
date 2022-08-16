@@ -38,6 +38,17 @@ class Browser(object):
         self.method = method
 
     async def query(self, session, **kwargs):
+        def replace_query():
+            remove_query = False
+            for k,v in self.payload.items():
+                if v == '{query}':
+                    self.payload[k] = self.payload.get('query')
+                    remove_query = True
+            if remove_query:
+                self.payload.pop('query')
+            print(self.payload)
+
+
         if 'refresh' in kwargs and kwargs.pop('refresh') == 'true':
             do_refresh = True
         else:
@@ -45,6 +56,8 @@ class Browser(object):
         self.payload = benedict(self.default.copy())
         for k, v in kwargs.items():
             self.payload[k] = v
+        replace_query()
+
         if self.xpath:
             self.response = await self.get_html(session)
         else:
@@ -125,10 +138,10 @@ class Browser(object):
             return render_template(self.template, payload=self.payload, responses=self.response, service_name=self.name, url=self.url.format(**self.payload))
 
     def has_empty_response(self):
-        return len(self.response) == 0 or "".join(self.response) == ""
+        return len(self.response) == 0 or (isinstance(self.response, list) and isinstance(self.response[0], str) and "".join(self.response) == "")
 
 services = {
-    'reverso-context': Browser('reverso', "https://context.reverso.net/bst-query-service", "reverso_context.html", {'source_lang': 'en', 'target_lang': 'zh', 'source_text': '', 'target_text': '', 'mode': '1', 'nrows': '50'}),
+    'reverso-context': Browser('reverso', "https://context.reverso.net/bst-query-service", "reverso_context.html", {'source_lang': 'en', 'target_lang': 'zh', 'source_text': '{query}', 'target_text': '', 'mode': '1', 'nrows': '50'}),
     'wantwords': Browser('wantwords', "https://wantwords.net/ChineseRD/?q={query}&m={m}", "wantwords.html", {'query':'', 'm':'EnZh'}, method='GET'),
     'deepl': Browser('deepl', "https://www2.deepl.com/jsonrpc", "deepl.html",
         {"jsonrpc":"2.0","method": "LMT_handle_jobs","params":{"jobs":[{"kind":"default","sentences":[{"text":"","id":0,"prefix":""}],"raw_en_context_before":[],"raw_en_context_after":[],"preferred_num_beams":4,"quality":"fast"}],"lang":{"user_preferred_langs":["ZH","EN"],"source_lang_user_selected":"auto","target_lang":"ZH"},"priority":-1,"commonJobParams":{"browserType":129,"formality":None},"apps":{"usage":5},"timestamp":1646624556415},"id":48930046}
@@ -146,7 +159,7 @@ services = {
     'odict': Browser('odict', 'http://odict.net/{query}', 'dictionary.html', {'query': '', 'extract': 'html'}, xpath=['//div[@class="abc_b"]', '//div[@class="abc_c"]'], exclude_xpath=['//script', '//ins', '//div[@class="abc_c"]/br[1]'], seperator = "", link_conversion={'//div[@class="abc_b"]//a':'/(.*)/'}),
     'naer_search': Browser('naer_search', 'https://terms.naer.edu.tw/search/?q={query}&field=ti&op=AND&match={match}&q=&field=ti&op=AND&order={order}&num={num}&show=&page={page}&group={group}&q=noun:"{category}"&field=&op=AND&q=word:"{word}"&field=&op=AND&q=name:"{name}"&field=&op=AND&q=au:"{au}"&field=&op=AND&heading=#result', 'naer.html', {'query': '', 'match':'full', 'category':'', 'word':'', 'name':'', 'au':'', 'order':'', 'group':'', 'num':50, 'page':1, 'extract': 'html'}, xpath=['//div[@class="result_keyword"]/em', '(//li[@class="pagination"])[1]', '//ul[@class="category_list"]', '//table[@class="resultlisttable"]/tr[@class="dash"]'], exclude_xpath=['//td[@class="sourceW"]/br', '//th[@class="cboxW"]', '//i[@class="icon-info-sign"]'], seperator = "<br>", link_conversion={'./ul/li/a':{'regex':['q=(?P<query>[\w ]+)?&', 'q=noun:"(?P<category>[\u3400-\u4db5\w\-]+)"', 'q=word:"(?P<word>[\u3400-\u4db5\w\-]+)"', 'q=name:"(?P<name>[\u3400-\u4db5\w\-]+)"', 'q=au:"(?P<au>[\u3400-\u4db5\w\-]+)"', 'group=(?P<group>\d+)', 'num=(?P<num>\d+)', 'match=(?P<match>\w+)', 'page=(?P<page>\d+)'], 'target': '/naer_search/?{query_string}'}, './li/a':{'regex':['q=(?P<query>[\w ]+)?&', 'q=noun:%22(?P<category>[\u3400-\u4db5\w\-]+)%22', 'q=word:%22(?P<word>[\u3400-\u4db5\w\-]+)%22', 'q=name:%22(?P<name>[\u3400-\u4db5\w\-]+)%22', 'q=au:%22(?P<au>[\u3400-\u4db5\w\-]+)%22', 'match=(?P<match>\w+)'], 'target': '/naer_search/?{query_string}'}, './/td[@class="ennameW" or @class="zhtwnameW" or @class="sourceW"]/a':{'regex':'/detail/(?P<query>\d+)/\?index=(?P<index>\d+)', 'target': '/naer_detail/?query={query}&index={index}'}}),
     'naer_detail': Browser('naer_detail', 'https://terms.naer.edu.tw/detail/{query}/?index={index}', 'dictionary.html', {'query': '', 'index': 1, 'extract': 'html'}, xpath=['//div[@id="explanation"]', '//div[@class="searchresultstab-content"]', '//table[@class="resultlisttable"]'], exclude_xpath=['//td[@class="sourceW"]/br'], seperator = '<hr class="naer_hr">', link_conversion={'//th[@class="ennameW" or @class="zhtwnameW"]/a':{'regex':'/detail/(?P<query>\d+)/', 'target': '/naer_detail/?query={query}'}, '//ul[@class="category_list"]/li/a':{'regex':'/detail/(?P<query>\d+)/', 'target': '/naer_detail/?query={query}'}}),
-    'tr-ex': Browser('tr-ex', 'https://tr-ex.me/translation/{from}-{to}/{query}?search={query}&t={t}&qt={qt}', 'dictionary.html', {'query': '', 'from':'english', 'to':'chinese', 't':'', 'qt':'', 'extract': 'html'}, xpath=['//div[@class="translations-wrapper"]', '//div[@class="doc-group"]'], exclude_xpath=['//div[@class="placer" or @class="bts" or @class="ads" or @class="context-examples-wrapper"]', '//img[@class="mobile-inline"]'], seperator = '', link_conversion={'//a[@class="text"]': '/translation/english-chinese/(.*)', '//a[@class="ctx-link"]': {'regex': ['/translation/(?P<from>english)-(?P<to>chinese)/(?P<query>.*)', '/translation/(?P<from>chinese)-(?P<to>english)/(?P<query>.*)'], 'target':'/tr-ex.me/?{query_string}'}, '//a[@class="translation"]':{'regex': '/translation/english-chinese/(?P<query>[\w \+]+)\?t=(?P<t>[\u4e00-\u9fa5]+)&qt=(?P<qt>[\w \+]+)', 'target':'/tr-ex.me/?query={query}&t={t}&qt={qt}'}}),
+    'tr-ex': Browser('tr-ex', 'https://tr-ex.me/translation/{from}-{to}/{query}?search={query}&t={t}&qt={qt}', 'dictionary.html', {'query': '', 'from':'english', 'to':'chinese', 't':'', 'qt':'', 'extract': 'html'}, xpath=['//div[@class="translations-wrapper"]', '//div[@class="doc-group"]'], exclude_xpath=['//div[@class="placer" or @class="bts" or @class="ads" or @class="context-examples-wrapper"]', '//div[@class="b h" or @class="e h"]', '//img[@class="mobile-inline"]', '//img[@class="icon"]'], seperator = '', link_conversion={'//a[@class="text"]': '/translation/english-chinese/(.*)', '//a[@class="ctx-link"]': {'regex': ['/translation/(?P<from>english)-(?P<to>chinese)/(?P<query>.*)', '/translation/(?P<from>chinese)-(?P<to>english)/(?P<query>.*)'], 'target':'/tr-ex.me/?{query_string}'}, '//a[@class="translation"]':{'regex': '/translation/english-chinese/(?P<query>[\w \+]+)\?t=(?P<t>[\u4e00-\u9fa5]+)&qt=(?P<qt>[\w \+]+)', 'target':'/tr-ex.me/?query={query}&t={t}&qt={qt}'}}),
 }
 
 
@@ -178,11 +191,15 @@ async def index(service=None):
             responses[s_name] =services[s_name].render()
         return render_template('index.html', responses=responses, services=services, payload=services[s_name].payload)
     elif ',' in service:
+        if ':' in service:
+            style, service = service.split(':')
+        else:
+            style = 'index'
         await query_services(service.split(','), **request.args)
         responses = {}
         for s_name in service.split(','):
             responses[s_name] = services[s_name].render()
-        return render_template('index.html', responses=responses, services=services, payload=services[s_name].payload)
+        return render_template('{style}.html'.format(style=style), responses=responses, services=services, payload=services[s_name].payload)
     else:
         await query_services([service], **request.args)
         return services[service].render()
