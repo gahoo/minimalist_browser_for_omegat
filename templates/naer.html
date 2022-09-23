@@ -2,7 +2,7 @@
 <html>
 <head>
 <style>
-body {font-size: 85%;} 
+body {font-size: 90%;} 
 button, input {font-size: 65%;}
 em   {font-weight: bold; color: red; background-color: lemonchiffon;}
 </style>
@@ -29,6 +29,13 @@ em   {font-weight: bold; color: red; background-color: lemonchiffon;}
 	<p><a href="{{ url }}">{{ url }}</a></p>
 	{% endif %}
 </body>
+{% if responses[0] == "" %}
+<script>
+if(!location.href.includes("match=smart")){
+        window.location.replace(location.href + '&match=smart');
+}
+</script>
+{% endif %}
 <script>
 // Get the input field
 var input = document.getElementById("query");
