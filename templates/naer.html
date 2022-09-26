@@ -31,7 +31,7 @@ em   {font-weight: bold; color: red; background-color: lemonchiffon;}
 </body>
 {% if responses[0] == "" %}
 <script>
-if(!location.href.includes("match=smart")){
+if(document.getElementById('query').value != "" && !location.href.includes("match=smart")){
         window.location.replace(location.href + '&match=smart');
 }
 </script>
