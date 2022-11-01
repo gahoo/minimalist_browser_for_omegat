@@ -24,3 +24,15 @@ h3.gramGrp {
 .gramGrp > span.pos {
     background-color: pink;
 }
+
+span.quote {
+    font-weight: bold;
+}
+
+span.type-pinyin {
+    display:none;
+}
+
+span.form > span.punctuation {
+    display:none;
+}
