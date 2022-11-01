@@ -36,3 +36,7 @@ span.type-pinyin {
 span.form > span.punctuation {
     display:none;
 }
+
+span.orth {
+    display:none;
+}
