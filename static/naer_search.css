@@ -1,57 +1,90 @@
-ul.category_list > li {
+.border-top,.border-second {
   display: inline-flex;
   margin: 2px;
   background-color: whitesmoke;
 }
 
-ul.category_list:hover > li {
+div.border-top:hover > div.row.flex-column {
   display: inline-flex !important;
+  padding-right: 2px;
+  max-width:80vw;
+  flex-wrap: wrap
 }
 
-li.pagination > ul > li {
-  display: inline-flex;
-  margin: 4px;
-}
-
-li.pagination > ul {
-  margin: 0px;
-  padding: 2px;
-}
-
-li.pagination {
-  display: inline-flex;
-}
-
-ul.category_list {
-  margin: 0px;
-  padding: 0;
-}
-
-#related_decommends > ul {
-  margin: 0px;
-  padding: 0;
-}
-
-tr > th {
-  margin: 12px
-}
-
-td > a:nth-child(even) {
-  background-color: #f2f2f2;
-}
-
-hr.naer_hr {
-  margin: 0;
-  border: 1px dashed
-}
-
-ul.category_list + br {
+div.row.flex-column {
   display:none
 }
 
-div.naer_result > a {
+div.row.flex-column > div.col {
+  padding: 0 4px 0 4px;
+}
+
+div.td > a {
   font-family: bold;
   padding-right: 8px;
   padding-left: 8px;
   color: black
+}
+
+.tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+.tr > .td {
+    display: table-cell;
+    padding-right: 16px;
+}
+
+.tr{
+    display: table-row;
+}
+
+span.badge {
+   padding-left: 4px;
+   color: grey
+}
+
+.d-inline-flex{
+  display: inline
+}
+
+.ms-1.badge.rounded-pill.bg-primary {
+  position: relative;
+  top: -1.5px;
+  border-radius: 50rem !important;
+  display: inline-block;
+  padding: 0.15em 0.35em;
+  font-size: .75em;
+  background-color: #ffffff;
+}
+
+.toast {
+  border: dashed;
+  border-width: thin;
+  max-width: 95vw;
+}
+
+.toast-header {
+  display: inline-flex;
+  padding-right: 4px
+
+}
+
+.toast-header > .col {
+  display: inline-flex;
+  padding-right: 4px
+
+}
+
+.toast-header > .col > div {
+  padding-right:8px
+}
+
+.text-end > .small {
+  background-color: #e6e6e6
+}
+
+.btn-outline-info {
+  background: beige;
+  max-width: fit-content
 }

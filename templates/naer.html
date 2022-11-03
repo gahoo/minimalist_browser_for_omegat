@@ -15,9 +15,7 @@ em   {font-weight: bold; color: red; background-color: lemonchiffon;}
 		<input id='query' name="query" type="text" value="{{ payload.query }}">
 		<input id='go' type="submit" value="GO">
 		<input type="checkbox" name="refresh" value="true"><label>refresh</label>
-		<input type="checkbox" name="match" value="smart"><label>fuzzy</label>
-		<input type="radio" name="group" value="1"><label>术语</label>
-		<input type="radio" name="group" value="2"><label>词典</label>
+		<input type="checkbox" name="match_type" value="phrase"><label>fuzzy</label>
 		</form>
 	</div>
 	<div class="naer_result">
@@ -29,10 +27,10 @@ em   {font-weight: bold; color: red; background-color: lemonchiffon;}
 	<p><a href="{{ url }}">{{ url }}</a></p>
 	{% endif %}
 </body>
-{% if responses[0] == "" %}
+{% if responses[3] == "" %}
 <script>
-if(document.getElementById('query').value != "" && !location.href.includes("match=smart")){
-        window.location.replace(location.href + '&match=smart');
+if(document.getElementById('query').value != "" && !location.href.includes("match_type=phrase")){
+        window.location.replace(location.href + '&match_type=phrase');
 }
 </script>
 {% endif %}
