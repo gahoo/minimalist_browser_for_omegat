@@ -36,6 +36,7 @@ class Browser(object):
         self.link_conversion = link_conversion
         self.response = None
         self.method = method
+        self.extract = 'html'
 
     async def query(self, session, **kwargs):
         def replace_query():
@@ -51,19 +52,34 @@ class Browser(object):
             do_refresh = True
         else:
             do_refresh = False
+
         self.payload = benedict(self.default.copy())
         for k, v in kwargs.items():
             self.payload[k] = v
         replace_query()
+
+        if 'extract' in self.payload:
+            self.extract = self.payload.pop('extract')
 
         if self.xpath:
             self.response = await self.get_html(session)
         else:
             self.response = await self.get_json(session, self.method)
 
+    def extra_query_string(self):
+        return "&".join(["{k}={v}".format(k=k, v=v) for k, v in self.payload.items() if k not in self.url and k != 'query'])
+
+    def resolved_url(self):
+        extra_query = self.extra_query_string()
+        if extra_query:
+            resolved_url = self.url.format(**self.payload) + '&' + self.extra_query_string() 
+        else:
+            resolved_url = self.url.format(**self.payload)
+        return resolved_url
+
     async def get_json(self, session, method="POST"):
         if method == "GET":
-            r = await session.request(method=method, url=self.url.format(**self.payload), headers=self.headers)
+            r = await session.request(method=method, url=self.resolved_url(), headers=self.headers)
         elif method == "POST":
             r = await session.request(method=method, url=self.url, data=json.dumps(self.payload), headers=self.headers)
         return await r.json()
@@ -80,10 +96,10 @@ class Browser(object):
         def extract_text(xpath):
             return "</br>".join([node.text_content() for node in doc.xpath(xpath)])
 
-        print(self.url.format(**self.payload))
-        r = await session.request(method="GET", url=self.url.format(**self.payload), headers=self.headers)
+        print(self.resolved_url())
+        r = await session.request(method="GET", url=self.resolved_url(), headers=self.headers)
         doc = html.fromstring(await r.text())
-        if self.payload['extract'] == 'html':
+        if self.extract == 'html':
             selected  = [extract_html(xpath) for xpath in self.xpath]
         else:
             selected  = [extract_text(xpath) for xpath in self.xpath]
@@ -133,7 +149,7 @@ class Browser(object):
         elif isinstance(self.response, list) and not self.xpath:
             return render_template(self.template, raw_json = json.dumps(self.response, indent=4, ensure_ascii=False), payload=self.payload, resp_list=self.response)
         else:
-            return render_template(self.template, payload=self.payload, responses=self.response, service_name=self.name, url=self.url.format(**self.payload))
+            return render_template(self.template, payload=self.payload, responses=self.response, service_name=self.name, url=self.resolved_url())
 
     def has_empty_response(self):
         return len(self.response) == 0 or (isinstance(self.response, list) and isinstance(self.response[0], str) and "".join(self.response) == "")
@@ -155,8 +171,8 @@ services = {
     'yiym': Browser('yiym', 'http://yiym.com/{query}', 'yiym.html', {'query': '', 'extract': 'html'}, xpath=['//div[contains(@class, "entry")]'], exclude_xpath=['//div[contains(@class, "entry")]/div[contains(@class, "postmetadata")]', '//script', '//div[@id="sidebar"]', '//div[@class="foot-new"]'], seperator = "", link_conversion={'//p[@class="slang_reference"]/a':'odict.net/(.*)/'}),
     'yiym_search': Browser('yiym_search', 'http://yiym.com/page/{page}?s={query}', 'dictionary.html', {'query': '', 'page':1, 'extract': 'html'}, xpath=['//div[@id="content"]'], exclude_xpath=['//script', '//div[@id="sidebar"]', '//div[@class="foot-new"]', '//div[contains(@class, "meta")]/span', '//div[contains(@class, "entry")]', '//h2[@class="pagetitle"]'], seperator = "", link_conversion={'//h3[@class="title"]/a':{'regex':'www.yiym.com/(.*)', 'target':'/yiym/?query={query}'}, '//div[@id="pagenavi"]/a':{'regex':'page/(?P<page>\d+)\?s=(?P<query>.*)', 'target':'?query={query}&page={page}'}}),
     'odict': Browser('odict', 'http://odict.net/{query}', 'dictionary.html', {'query': '', 'extract': 'html'}, xpath=['//div[@class="abc_b"]', '//div[@class="abc_c"]'], exclude_xpath=['//script', '//ins', '//div[@class="abc_c"]/br[1]'], seperator = "", link_conversion={'//div[@class="abc_b"]//a':'/(.*)/'}),
-    'naer_search': Browser('naer_search', 'https://terms.naer.edu.tw/search/?q={query}&field=ti&op=AND&match={match}&q=&field=ti&op=AND&order={order}&num={num}&show=&page={page}&group={group}&q=noun:"{category}"&field=&op=AND&q=word:"{word}"&field=&op=AND&q=name:"{name}"&field=&op=AND&q=au:"{au}"&field=&op=AND&heading=#result', 'naer.html', {'query': '', 'match':'full', 'category':'', 'word':'', 'name':'', 'au':'', 'order':'', 'group':'', 'num':50, 'page':1, 'extract': 'html'}, xpath=['//div[@class="result_keyword"]/em', '(//li[@class="pagination"])[1]', '//ul[@class="category_list"]', '//table[@class="resultlisttable"]/tr[@class="dash"]'], exclude_xpath=['//td[@class="sourceW"]/br', '//th[@class="cboxW"]', '//i[@class="icon-info-sign"]'], seperator = "<br>", link_conversion={'./ul/li/a':{'regex':['q=(?P<query>[\w ]+)?&', 'q=noun:"(?P<category>[\u3400-\u4db5\w\-]+)"', 'q=word:"(?P<word>[\u3400-\u4db5\w\-]+)"', 'q=name:"(?P<name>[\u3400-\u4db5\w\-]+)"', 'q=au:"(?P<au>[\u3400-\u4db5\w\-]+)"', 'group=(?P<group>\d+)', 'num=(?P<num>\d+)', 'match=(?P<match>\w+)', 'page=(?P<page>\d+)'], 'target': '/naer_search/?{query_string}'}, './li/a':{'regex':['q=(?P<query>[\w ]+)?&', 'q=noun:%22(?P<category>[\u3400-\u4db5\w\-]+)%22', 'q=word:%22(?P<word>[\u3400-\u4db5\w\-]+)%22', 'q=name:%22(?P<name>[\u3400-\u4db5\w\-]+)%22', 'q=au:%22(?P<au>[\u3400-\u4db5\w\-]+)%22', 'match=(?P<match>\w+)'], 'target': '/naer_search/?{query_string}'}, './/td[@class="ennameW" or @class="zhtwnameW" or @class="sourceW"]/a':{'regex':'/detail/(?P<query>\d+)/\?index=(?P<index>\d+)', 'target': '/naer_detail/?query={query}&index={index}'}}),
-    'naer_detail': Browser('naer_detail', 'https://terms.naer.edu.tw/detail/{query}/?index={index}', 'dictionary.html', {'query': '', 'index': 1, 'extract': 'html'}, xpath=['//div[@id="explanation"]', '//div[@class="searchresultstab-content"]', '//table[@class="resultlisttable"]'], exclude_xpath=['//td[@class="sourceW"]/br'], seperator = '<hr class="naer_hr">', link_conversion={'//th[@class="ennameW" or @class="zhtwnameW"]/a':{'regex':'/detail/(?P<query>\d+)/', 'target': '/naer_detail/?query={query}'}, '//ul[@class="category_list"]/li/a':{'regex':'/detail/(?P<query>\d+)/', 'target': '/naer_detail/?query={query}'}}),
+    'naer_search': Browser('naer_search', 'https://terms.naer.edu.tw/search/?query_term={query}&query_field=title&query_op=&match_type={match_type}&page_size={page_size}&page={page}', 'naer.html', {'query': '', 'match_type':'term', 'page_size': 50, 'page':1, 'extract': 'html'}, xpath=['//div[@class="d-inline-flex px-2"]', '//nav[@aria-label="頁數控制"]//a[contains(text(), "下一頁") or contains(text(), "上一頁")]', '//div[contains(@class, "card")]', '//div[@class="tbody"]/div[@class="tr"]'], exclude_xpath=['//div[@class="td d-none-xs"]', '//div[@class="tr"]/div[@aria-label="項次"]', '//li[contains(@class,"page-item d-flex")]', '//div[@class="loadmore-control"]', '//div[@class="fs-4 fw-bold py-2"]', '//a/i[contains(@class, "fa-angle-")]'], seperator = "", link_conversion={'//div[@class="td"]/a':{'regex': "/detail/(?P<query>[a-z0-9]+)/?.*seq=(?P<seq>\d+)", 'target': '/naer_detail/?query={query}&seq={seq}'}, '//a[contains(@class, "page-link")]':{'regex':"page=(?P<page>\d+)&" , 'target':'Javascript:(window.location.replace(window.location.href.replace(/page=\d+/, "page={page}") + "&page={page}"))'}, '//div[@class="col item"]/a': 'query_term=(.*)'}),
+    'naer_detail': Browser('naer_detail', 'https://terms.naer.edu.tw/detail/{query}/?seq={seq}', 'dictionary.html', {'query': '', 'seq': 1, 'extract': 'html'}, xpath=['//div[@id="explanation"]', '//div[@id="translation"]', '//div[@id="assort" or @id="related"]'], exclude_xpath=['//div[@class="loadmore-control"]', '//div[@class="thead"]'], seperator = '', link_conversion={'//div[@class="td"]/a': '/detail/(.*)/', '//a[contains(@class, "btn-link")]': '/detail/(.*)/'}),
     'tr-ex': Browser('tr-ex', 'https://tr-ex.me/translation/{from}-{to}/{query}?search={query}&t={t}&qt={qt}', 'dictionary.html', {'query': '', 'from':'english', 'to':'chinese', 't':'', 'qt':'', 'extract': 'html'}, xpath=['//div[contains(@class,"query-part")]', '//div[@class="doc-group"]'], exclude_xpath=['//div[@class="placer" or @class="bts" or @class="ads" or @class="context-examples-wrapper"]', '//div[@class="b h" or @class="e h"]', '//img[contains(@class, "chunk-translation-icon")]', '//img[@class="mobile-inline"]', '//img[@class="icon"]'], seperator = '', link_conversion={'//a[@class="text"]': '/translation/english-chinese/(.*)', '//a[@class="ctx-link"]': {'regex': ['/translation/(?P<from>english)-(?P<to>chinese)/(?P<query>.*)', '/translation/(?P<from>chinese)-(?P<to>english)/(?P<query>.*)'], 'target':'/tr-ex.me/?{query_string}'}, '//a[@class="translation"]':{'regex': '/translation/english-chinese/(?P<query>[\w \+]+)\?t=(?P<t>[\u4e00-\u9fa5]+)&qt=(?P<qt>[\w \+]+)', 'target':'/tr-ex.me/?query={query}&t={t}&qt={qt}'}}),
 }
 
